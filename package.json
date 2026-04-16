@@ -1,0 +1,51 @@
+{
+  "name": "cinema-seat-lock-api",
+  "version": "1.0.0",
+  "description": "REST API para reserva de asientos de cine con sistema de bloqueo temporal (TTL) y manejo de concurrencia. Diseñada para evitar doble reserva y simular flujo de compra de entradas.",
+  "main": "src/server.js",
+  "scripts": {
+    "start": "node index.js",
+    "dev": "nodemon index.js",
+    "test": "echo \"Error: no tests specified\" && exit 1"
+  },
+  "keywords": [
+    "cinema",
+    "booking",
+    "seat-lock",
+    "ttl",
+    "concurrency",
+    "express",
+    "api",
+    "swagger",
+    "openapi"
+  ],
+  "author": {
+    "name": "Dario Fernando Gonzalez",
+    "email": "dario.zerobyte@gmail.com",
+    "url": "https://github.com/DarioFGonzalez"
+  },
+  "license": "MIT",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/DarioFGonzalez/cinema-seat-lock-api.git"
+  },
+  "bugs": {
+    "url": "https://github.com/DarioFGonzalez/cinema-seat-lock-api/issues"
+  },
+  "homepage": "https://github.com/DarioFGonzalez/cinema-seat-lock-api#readme",
+  "dependencies": {
+    "cors": "^2.8.6",
+    "dotenv": "^16.3.1",
+    "express": "^4.18.2",
+    "mysql2": "^3.22.0",
+    "swagger-jsdoc": "^6.2.8",
+    "swagger-ui-express": "^5.0.0"
+  },
+  "devDependencies": {
+    "nodemon": "^3.0.1"
+  },
+  "engines": {
+    "node": ">=18.0.0",
+    "npm": ">=9.0.0"
+  }
+}
