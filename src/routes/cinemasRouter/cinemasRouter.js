@@ -2,6 +2,7 @@ const {Router} = require('express');
 const { getCinemaById, getAllCinemas } = require('../../handlers/cinemasHandlers/getCinemas');
 const postCinema = require('../../handlers/cinemasHandlers/postCinema');
 const { updateCinema, toggleActiveCinema } = require('../../handlers/cinemasHandlers/updateCinema');
+const deleteCinema = require('../../handlers/cinemasHandlers/deleteCinema');
 const cinemasRouter = Router();
 
 /**
@@ -227,6 +228,33 @@ cinemasRouter.patch('/:id', updateCinema);
 
 cinemasRouter.patch('/:id/toggle', toggleActiveCinema);
 
-// cinemasRouter.delete('/:id', deleteCinema)
+/**
+ * @swagger
+ * /cinemas/{id}:
+ *   delete:
+ *     summary: Borra el registro entero del Cinema. [Hard delete]
+ *     tags:
+ *       -  Borrado
+ *     description: Se envía el ID del cinema a borrar y se quita permanentemente de la base de datos .
+ *     parameters:
+ *       - in: path
+ *         name: id
+ *         required: true
+ *         schema:
+ *           type: string
+ *           example: 11111111-1111-1111-1111-111111111111
+ *         description: UUID del cinema a eliminar.
+ *     responses:
+ *       204:
+ *         description: La convención REST dice que ante un DELETE exitoso se devuelve un 204 No Content.
+ *       400:
+ *         description: No se pudo actualizar correctamente. (ID inválido o no recibido por parametro)
+ *       404:
+ *         description: No se encontró un cinema con esa ID en la base de datos.
+ *       500:
+ *         description: Error interno del servidor.
+ */
+
+cinemasRouter.delete('/:id', deleteCinema);
 
 module.exports = cinemasRouter;
