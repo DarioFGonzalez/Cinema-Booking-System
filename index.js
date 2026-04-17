@@ -1,10 +1,13 @@
 require('dotenv').config({ quiet: true });
 const server = require('./src/config/server');
 const pool = require('./src/config/db');
+const { initializeDatabase } = require('./src/config/init-db');
 
 async function startServer() {
     try {
         await pool.query('SELECT 1');
+
+        await initializeDatabase();
 
         server.listen( process.env.DB_PORT, () => console.log('ok') );
     } catch(error) {
