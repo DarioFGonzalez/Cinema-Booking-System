@@ -1,4 +1,4 @@
-const { updateCinemaQueryBuilder } = require("../../utils/queryBuilder");
+const { updateCinemaQuery } = require("../../utils/queryBuilder");
 const { validateId } = require("../../utils/validations");
 
 const updateCinema = async (req, res) => {
@@ -6,7 +6,7 @@ const updateCinema = async (req, res) => {
 
     try {
         validateId(id);
-        const { conditions, values } = updateCinemaQueryBuilder(req.body);
+        const { conditions, values } = updateCinemaQuery(req.body);
         if(conditions.length===0) {
             throw Object.assign( new Error('Sin condiciones para actualizar'),
             {

@@ -12,7 +12,7 @@ const cinemasRouter = Router();
  *     summary: Crea un nuevo cinema
  *     description: Enviamos datos básicos para crear un nuevo Cinema en la base de datos..
  *     tags:
- *       -  Creación
+ *       - Cinemas
  *     requestBody:
  *       required: true
  *       content:
@@ -68,12 +68,10 @@ cinemasRouter.post('/', postCinema);
  *     summary: Busca y devuelve todos los cinemas.
  *     description: Busca todos los cinemas en la base de datos y los devuelve en un array.
  *     tags:
- *       -  Búsqueda
+ *       - Cinemas
  *     responses:
  *       200:
  *         description: Devuelve un array con todos los cinemas en base de datos.
- *       400:
- *         description: Datos inválidos o faltantes
  *       500:
  *         description: Error interno del servidor
  */
@@ -85,7 +83,9 @@ cinemasRouter.get('/', getAllCinemas);
  * /cinemas/{id}:
  *   get:
  *     summary: Busca un cinema por ID
- *     description: Busca específicamente por ID, validando el formato del mismo previo a la búsqueda.
+ *     description: Busca específicamente por ID y devuelve todos sus datos junto a las salas que tenga relacionadas.
+ *     tags:
+ *       - Cinemas
  *     parameters:
  *      - in: path
  *        name: id
@@ -94,8 +94,6 @@ cinemasRouter.get('/', getAllCinemas);
  *         type: string
  *         example: 11111111-1111-1111-1111-111111111111
  *        description: UUID del cinema.
- *     tags:
- *       -  Búsqueda
  *     responses:
  *       200:
  *         description: Devuelve un objeto con los datos y relacionales del Cinema buscado.
@@ -115,6 +113,8 @@ cinemasRouter.get('/:id', getCinemaById)
  *   patch:
  *     summary: Actualiza los datos no críticos de un cinema.
  *     description: Recibe datos a cambiar por body y actualiza un cinema por ID.
+ *     tags:
+ *       - Cinemas
  *     parameters:
  *      - in: path
  *        name: id
@@ -122,23 +122,6 @@ cinemasRouter.get('/:id', getCinemaById)
  *        schema:
  *         type: string
  *         example: 11111111-1111-1111-1111-111111111111
- *         examples:
- *           enviar_id_válido:
- *             summary: ✔ Enviamos un ID válido
- *             value: 11111111-1111-1111-1111-111111111111
- *           enviar_id_inválido:
- *             summary: ✖ Enviar un ID inválido
- *             description: Si el ID que enviamos NO cumple con el formato UUID, el servidor responderá con un error 400  'INVALID_ID_FORMAT'
- *             value: 123-456-789
- *           no_enviar_id:
- *             summary: ✖ No enviar ID por params
- *             description: Si no recibe ID por parametro, el servidor responde con un error 400 'NO_ID_RECEIVED'
- *             value: ""
- *        description: |
- *          <strong>UUID del cinema.</strong><br>
- *          ✔ Formato UUID <code>11111111-1111-1111-1111-111111111111</code><br>
- *          ✖ Sin formato UUID <code>123-456-789</code><br>
- *          ✖ Vacío <code>""</code>
  *     requestBody:
  *       required: true
  *       content:
@@ -184,8 +167,6 @@ cinemasRouter.get('/:id', getCinemaById)
  *                 summary: ✖ Enviar body vacío.
  *                 description: Al enviar un body vacío, el helper que construye la query de actualización lo detecta y responde con un error 400 ("No se recibió nada por body").
  *                 value: {}
- *     tags:
- *       -  Actualización
  *     responses:
  *       200:
  *         description: Devuelve el registro completo del cinema actualizado.
@@ -205,7 +186,7 @@ cinemasRouter.patch('/:id', updateCinema);
  *   patch:
  *     summary: Cambia el estado (activo/inactivo) de un cinema.
  *     tags:
- *       -  Actualización
+ *       - Cinemas
  *     description: Se fija el estado actual del cinema y lo settea en su opuesto (toggle).
  *     parameters:
  *       - in: path
@@ -234,7 +215,7 @@ cinemasRouter.patch('/:id/toggle', toggleActiveCinema);
  *   delete:
  *     summary: Borra el registro entero del Cinema. [Hard delete]
  *     tags:
- *       -  Borrado
+ *       - Cinemas
  *     description: Se envía el ID del cinema a borrar y se quita permanentemente de la base de datos .
  *     parameters:
  *       - in: path

@@ -1,7 +1,6 @@
 const pool = require('./db');
 const crypto = require('crypto');
 
-// ID fijo para el cine de prueba (válido para getById y update)
 const FIXED_CINEMA_ID = '11111111-1111-1111-1111-111111111111';
 
 const tables = {
@@ -56,47 +55,51 @@ const tables = {
 
 async function seedTestCinema() {
     try {
-        const [existing] = await pool.query(
-            'SELECT id FROM cinemas WHERE id = ?',
-            [FIXED_CINEMA_ID]
-        );
-        
-        if (existing.length === 0) {
-            await pool.query(
-                `INSERT INTO cinemas (id, name, city, is_active) 
-                 VALUES (?, ?, ?, ?)`,
-                [FIXED_CINEMA_ID, 'Cinema de Prueba', 'CABA', true]
-            );
-        } else {
-            console.log('Cine de prueba ya existe');
-        }
-        // // Opcional: insertar películas de ejemplo si no hay
-        // const [movieCount] = await pool.query('SELECT COUNT(*) as count FROM movies');
-        // if (movieCount[0].count === 0) {
-        //     await pool.query(`
-        //         INSERT INTO movies (title, duration, genre, release_date) VALUES 
-        //         ('Dune: Parte 2', 166, 'Ciencia ficción', '2024-02-28'),
-        //         ('Poor Things', 141, 'Comedia dramática', '2024-01-25'),
-        //         ('Oppenheimer', 180, 'Drama histórico', '2023-07-20')
-        //     `);
-        //     console.log('✅ Películas de ejemplo insertadas');
-        // }
-        
-        // // Opcional: insertar salas de ejemplo para el cine de prueba
-        // const [roomCount] = await pool.query(
-        //     'SELECT COUNT(*) as count FROM rooms WHERE cinema_id = ?',
-        //     [FIXED_CINEMA_ID]
-        // );
-        // if (roomCount[0].count === 0) {
-        //     await pool.query(`
-        //         INSERT INTO rooms (cinema_id, capacity, is_active) VALUES 
-        //         (?, 100, true),
-        //         (?, 80, true),
-        //         (?, 120, true)
-        //     `, [FIXED_CINEMA_ID, FIXED_CINEMA_ID, FIXED_CINEMA_ID]);
-        //     console.log('✅ Salas de ejemplo creadas para el cine de prueba');
-        // }
-        
+        await pool.query(`
+            INSERT INTO cinemas (id, name, city, is_active) 
+            VALUES (?, 'Cinema de Prueba', 'CABA', true)
+            ON DUPLICATE KEY UPDATE 
+                name = VALUES(name),
+                city = VALUES(city),
+                is_active = VALUES(is_active)
+        `, [FIXED_CINEMA_ID]);
+
+        const moviesSeed = [
+            [1, 'Dune: Parte 2', 166, 'Ciencia ficción', '2024-02-28'],
+            [2, 'Poor Things', 141, 'Comedia dramática', '2024-01-25'],
+            [3, 'Oppenheimer', 180, 'Drama histórico', '2023-07-20']
+        ];
+
+        const moviePlaceholders = moviesSeed.map(() => '(?, ?, ?, ?, ?)').join(', ');
+        const movieFlatValues = moviesSeed.flat();
+
+        await pool.query(`
+            INSERT INTO movies (id, title, duration, genre, release_date) 
+            VALUES ${moviePlaceholders}
+            ON DUPLICATE KEY UPDATE 
+                title = VALUES(title),
+                duration = VALUES(duration),
+                genre = VALUES(genre),
+                release_date = VALUES(release_date)
+        `, movieFlatValues);
+
+        const roomsSeed = [
+            [1, FIXED_CINEMA_ID, 100, true],
+            [2, FIXED_CINEMA_ID, 80, true],
+            [3, FIXED_CINEMA_ID, 120, true]
+        ];
+
+        const roomsPlaceholders = roomsSeed.map(() => '(?, ?, ?, ?)').join(', ');
+        const roomsFlatValues = roomsSeed.flat();
+
+        await pool.query(`
+            INSERT INTO rooms (id, cinema_id, capacity, is_active) 
+            VALUES ${roomsPlaceholders}
+            ON DUPLICATE KEY UPDATE 
+                capacity = VALUES(capacity),
+                is_active = VALUES(is_active)
+        `, roomsFlatValues);
+
     } catch (error) {
         console.warn('Error en seed:', error.message);
     }
@@ -125,4 +128,4 @@ async function initializeDatabase() {
     }
 }
 
-module.exports = {initializeDatabase, FIXED_CINEMA_ID};
+module.exports = {initializeDatabase};
