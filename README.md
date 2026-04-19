@@ -1,34 +1,53 @@
 <div align="center">
 
 # 🎬 **Cinema Booking API** 
-### *REST API for cinema management (theaters, movies, rooms, shows)*
+### *REST API with professional OpenAPI/Swagger documentation*
 
-![Status](https://img.shields.io/badge/status-production--ready-brightgreen)
-![MySQL](https://img.shields.io/badge/MySQL-raw--queries-4479A1)
+![Status](https://img.shields.io/badge/status-in--development-yellow)
 ![Swagger](https://img.shields.io/badge/Swagger-OpenAPI-85EA2D)
+![MySQL](https://img.shields.io/badge/MySQL-raw--queries-4479A1)
 ![Node](https://img.shields.io/badge/Node.js-Express-339933)
 
-**⚡ 15+ endpoints | 🎯 CRUD cinemas/movies/rooms | 📊 Show counters | 🔄 Swagger UI**
+**⚡ 3 modules | 📚 15+ documented endpoints | 🧪 Swagger UI interactive**
 
 </div>
 
 ---
 
-# 🏢 Cinema Booking System (Raw SQL)
+> **🎯 Objetivo principal de este proyecto:**  
+> Demostrar manejo profesional de **Swagger/OpenAPI 3.0** en una API REST funcional.  
+> Documentación clara, ejemplos de éxito y error, casos mixtos, y esquemas detallados.
 
-API REST para gestión de cines, películas, salas y funciones.  
-Sistema completo con validación de integridad referencial, contadores agregados y documentación interactiva.  
-**Sin ORM - queries SQL puras.**
+## 🧪 ¿Qué es este proyecto?
 
-## 🎯 ¿Qué problema resuelve este proyecto?
+Una API REST para gestión de cines, películas, salas y (próximamente) funciones.
 
-**Los sistemas de gestión de cines** necesitan:
-- ✅ CRUD completo de cines, películas y salas
-- ✅ Validación de que una sala pertenezca a un cine existente
-- ✅ Contadores de shows activos/inactivos por sala (sin N+1 queries)
-- ✅ Documentación clara para que cualquier desarrollador pueda usarla
+**El foco NO es la complejidad del negocio, sino la calidad de la documentación.**
 
-**Este proyecto implementa exactamente eso, con SQL puro y documentación Swagger.**
+### Lo que SÍ tiene (y está documentado):
+- ✅ CRUD completo de cinemas, movies y rooms
+- ✅ Relaciones entre entidades (cinemas → rooms, próximamente rooms → shows)
+- ✅ Validación de integridad referencial (FK checks antes de insertar)
+- ✅ Documentación interactiva con Swagger UI
+- ✅ Ejemplos de éxito, error y casos mixtos por endpoint
+- ✅ Query builders reutilizables con currying
+- ✅ Código limpio y separado por capas
+
+### Lo que está en camino (y también se documentará):
+- 🔄 Módulo Shows (con room_id, movie_id, is_active)
+- 🔄 Eventos en cascada (ON DELETE CASCADE / RESTRICT)
+- 🔄 Soft delete y hard delete según corresponda
+- 🔄 Paginación en listados
+
+### Lo que NO tiene (ni va a tener):
+- ❌ JWT / autenticación (no es el objetivo)
+- ❌ Roles de usuario
+- ❌ Tests automatizados (por ahora)
+- ❌ Integración con servicios externos
+
+**Para qué sirve este proyecto:**  
+Demostrar que sé documentar una API como se espera en un entorno profesional.  
+El código es funcional y limpio, pero el verdadero valor está en la documentación.
 
 ---
 
@@ -42,30 +61,48 @@ Sistema completo con validación de integridad referencial, contadores agregados
 
 ---
 
-## 📂 Estructura del proyecto
-```
-src/
-├── handlers/ # Controladores (req/res)
-│ ├── cinemasHandlers/
-│ ├── moviesHandlers/
-│ └── roomsHandlers/
-├── utils/ # Query builders, validaciones
-├── config/ # DB pool, Swagger, server, init-db
-├── routes/ # Definición de endpoints
-└── server.js # Entry point
+### Project Structure
+```src/
+├── config/
+│   ├── db.js              # MySQL connection pool with mysql2/promise
+│   ├── server.js          # Express app, middleware, Swagger mount
+│   ├── swagger.js         # OpenAPI 3.0 config (swagger-jsdoc)
+│   └── init-db.js         # Schema creation + seed data (UPSERT, fixed IDs)
+├── handlers/
+│   ├── cinemasHandlers/
+│   │   ├── getCinemas.js      # GET all, GET by id, GET by id with rooms
+│   │   ├── postCinema.js      # POST create (UUID auto-generated)
+│   │   ├── updateCinema.js    # PATCH update, PATCH toggle active
+│   │   └── deleteCinema.js    # DELETE hard delete
+│   ├── moviesHandlers/
+│   │   ├── getMovies.js       # GET all, GET by id
+│   │   ├── postMovie.js       # POST create (mandatory: title, duration, genre)
+│   │   ├── updateMovie.js     # PATCH update (partial)
+│   │   └── deleteMovie.js     # DELETE hard delete
+│   └── roomsHandlers/
+│       ├── getRooms.js        # GET all, GET by id (with show counters), GET by status
+│       ├── postRoom.js        # POST create (validates cinema_id exists)
+│       └── updateRoom.js      # PATCH update, DELETE hard delete
+├── routes/
+│   ├── cinemasRouter.js   # Swagger docs + route definitions
+│   ├── moviesRouter.js    # Swagger docs + route definitions
+│   └── roomsRouter.js     # Swagger docs + route definitions
+├── utils/
+│   ├── queryBuilder.js    # postQueryBuilder, updateQueryBuilder, checkMandatoryColumns
+│   └── validations.js     # validateId (UUID), isNaN for INT ids
+└── server.js              # Entry point (starts server, connects DB, runs init-db)
 ```
 
 
 ---
 
-## 📌 La aplicación sigue una arquitectura:
+## 📌 Arquitectura
 
 **Routes → Handlers → Utils → Database**
 
-### Esto permite:
-- Separar responsabilidades
-- Reutilizar lógica (query builders)
-- Mantener el código limpio y testeable
+- Separación de responsabilidades
+- Lógica reutilizable en query builders
+- Código limpio y testeable
 - Documentación centralizada con Swagger
 
 ---
@@ -73,27 +110,26 @@ src/
 ## ✅ Validación de datos
 
 - `validateId()` para UUIDs (cinemas)
-- Validación de IDs enteros para movies/rooms
-- `checkMandatoryColumns()` para campos obligatorios en POST
-- Whitelist de columnas permitidas en query builders
+- Validación de IDs enteros (movies, rooms)
+- `checkMandatoryColumns()` para campos obligatorios
+- Whitelist de columnas permitidas
 
 ---
 
-## 🧠 Lógica de negocio clave
+## 🧠 Lógica de negocio destacada
 
 ### Contadores agregados (sin N+1)
-- `GET /rooms/:id` devuelve la sala + estadísticas de shows
+- `GET /rooms/:id` devuelve estadísticas de shows relacionados
 - Una sola query con `SUM(is_active = TRUE/FALSE)`
-- Escala sin importar la cantidad de shows
 
-### Integridad referencial
+### Integridad referencial explícita
 - Validación de `cinema_id` antes de crear una sala
 - Error `404 CINEMA_NOT_FOUND` en lugar de error genérico de FK
 
 ### Query builders con currying
 - `postQueryBuilder(allowedParams)` → preconfiguración para INSERT
 - `updateQueryBuilder(allowedParams)` → preconfiguración para UPDATE
-- `checkMandatoryColumns()` reusable para validaciones
+- `checkMandatoryColumns()` reusable
 
 ---
 
@@ -101,55 +137,51 @@ src/
 
 ### 🏢 Cinemas
 
-| Método | Endpoint | Descripción | Acceso |
-|--------|----------|-------------|--------|
-| `POST` | `/cinemas` | Crear cine (UUID automático) | Público |
-| `GET` | `/cinemas` | Listar todos los cines | Público |
-| `GET` | `/cinemas/:id` | Obtener cine + sus salas | Público |
-| `PATCH` | `/cinemas/:id` | Actualizar nombre/ciudad/estado | Público |
-| `PATCH` | `/cinemas/:id/toggle` | Activar/desactivar cine (soft delete) | Público |
-| `DELETE` | `/cinemas/:id` | Eliminar físicamente (hard delete) | Público |
+| Método | Endpoint | Descripción |
+|--------|----------|-------------|
+| `POST` | `/cinemas` | Crear cine (UUID automático) |
+| `GET` | `/cinemas` | Listar todos |
+| `GET` | `/cinemas/:id` | Obtener cine + sus salas |
+| `PATCH` | `/cinemas/:id` | Actualizar nombre/ciudad/estado |
+| `PATCH` | `/cinemas/:id/toggle` | Activar/desactivar (soft delete) |
+| `DELETE` | `/cinemas/:id` | Eliminar físicamente |
 
 ### 🎬 Películas
 
-| Método | Endpoint | Descripción | Acceso |
-|--------|----------|-------------|--------|
-| `POST` | `/movies` | Crear película (title, duration, genre requeridos) | Público |
-| `GET` | `/movies` | Listar todas las películas | Público |
-| `GET` | `/movies/:id` | Obtener película por ID | Público |
-| `PATCH` | `/movies/:id` | Actualizar datos de película | Público |
-| `DELETE` | `/movies/:id` | Eliminar físicamente (hard delete) | Público |
+| Método | Endpoint | Descripción |
+|--------|----------|-------------|
+| `POST` | `/movies` | Crear película (title, duration, genre requeridos) |
+| `GET` | `/movies` | Listar todas |
+| `GET` | `/movies/:id` | Obtener por ID |
+| `PATCH` | `/movies/:id` | Actualizar datos |
+| `DELETE` | `/movies/:id` | Eliminar físicamente |
 
 ### 🪑 Salas
 
-| Método | Endpoint | Descripción | Acceso |
-|--------|----------|-------------|--------|
-| `POST` | `/rooms` | Crear sala (cinema_id, capacity requeridos) | Público |
-| `GET` | `/rooms` | Listar todas las salas | Público |
-| `GET` | `/rooms/:id` | Obtener sala + contadores de shows | Público |
-| `GET` | `/rooms/:id/status?status=active` | Filtrar shows por estado | Público |
-| `PATCH` | `/rooms/:id` | ⏳ Pendiente | - |
-| `DELETE` | `/rooms/:id` | ⏳ Pendiente | - |
+| Método | Endpoint | Descripción |
+|--------|----------|-------------|
+| `POST` | `/rooms` | Crear sala (cinema_id, capacity requeridos) |
+| `GET` | `/rooms` | Listar todas |
+| `GET` | `/rooms/:id` | Obtener sala + contadores de shows |
+| `GET` | `/rooms/:id/status?status=active` | Filtrar shows por estado |
+| `PATCH` | `/rooms/:id` | ⏳ Próximamente |
+| `DELETE` | `/rooms/:id` | ⏳ Próximamente |
 
----
+### 🎟️ Shows (próximamente)
 
-## 🧠 Conceptos aplicados
-
-- Arquitectura en capas
-- Queries SQL puras (sin ORM)
-- Placeholders parametrizados (SQL injection safe)
-- UUID para cinemas, INT AUTO_INCREMENT para movies/rooms
-- Currying para query builders reutilizables
-- Validación de integridad referencial antes de INSERT
-- Contadores agregados con `SUM(condition)`
-- Soft delete (toggle) y hard delete
-- Documentación interactiva con Swagger UI
+| Método | Endpoint | Descripción |
+|--------|----------|-------------|
+| `POST` | `/shows` | Crear función (movie_id, room_id, show_time, price) |
+| `GET` | `/shows` | Listar funciones |
+| `GET` | `/shows/:id` | Obtener función por ID |
+| `PATCH` | `/shows/:id` | Actualizar función |
+| `DELETE` | `/shows/:id` | Eliminar función |
 
 ---
 
 ## 📖 Documentación interactiva
 
-Una vez que el servidor esté corriendo, podés explorar y probar la API desde:
+Una vez que el servidor esté corriendo:
 ```
 http://localhost:5000/api-docs
 ```
@@ -159,6 +191,7 @@ http://localhost:5000/api-docs
 - Ejemplos de errores (campos faltantes, IDs inválidos)
 - Parámetros de query con dropdown (active/inactive)
 - Respuestas con schemas detallados
+- Casos mixtos (datos válidos e inválidos en el mismo request)
 
 ---
 
@@ -169,34 +202,27 @@ git clone https://github.com/DarioFGonzalez/cinema-booking-system.git
 cd cinema-booking-system
 npm install
 cp .env.example .env
-# Configurar variables de entorno (DB_HOST, DB_USER, DB_PASSWORD, DB_NAME)
+# Configurar DB_HOST, DB_USER, DB_PASSWORD, DB_NAME
 npm run dev
 ```
 El servidor arrancará en `http://localhost:5000`
 
-## 🔒 Mejoras futuras
+## 🔄 Próximos pasos (en este proyecto)
 
-- Módulo de Shows (CRUD de funciones por sala)
-- PATCH /rooms (actualizar capacidad o estado)
-- DELETE /rooms (hard delete)
-- Paginación en listados
-- JWT authentication
-- Role-based access (admin / client)
-- Tests unitarios y de integración
-- Logging estructurado (winston)
+- [ ] Módulo Shows (funciones por sala)
+- [ ] Relaciones con ON DELETE CASCADE / RESTRICT
+- [ ] Paginación en listados
+- [ ] Soft delete consistente
 
 ## 📊 Progreso actual
 
-| Módulo | Estado |
-|--------|--------|
-| Cinemas CRUD + toggle + delete | ✅ Completado |
-| Movies CRUD | ✅ Completado |
-| Rooms POST, GET all, GET by id, GET by status | ✅ Completado |
-| Rooms PATCH + DELETE | ⏳ Pendiente |
-| Shows module | ⏳ Pendiente (schema definido) |
-| Swagger documentation | ✅ Completado |
-| Paginación | 📅 Próximo |
-| JWT + roles | 📅 Próximo |
+| Módulo | Estado | Documentación |
+|--------|--------|---------------|
+| Cinemas CRUD | ✅ | ✅ Swagger |
+| Movies CRUD | ✅ | ✅ Swagger |
+| Rooms CRUD (parcial) | ✅ | ✅ Swagger |
+| Shows CRUD | ⏳ | 📅 Pendiente |
+| Relaciones FK avanzadas | 📅 | 📅 Pendiente |
 
 ## 👨‍💻 Autor
 
