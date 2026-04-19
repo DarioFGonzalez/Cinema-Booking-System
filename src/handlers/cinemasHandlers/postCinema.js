@@ -1,24 +1,15 @@
+const { postCinemaQuery } = require("../../utils/queryBuilder");
+
 const postCinema = async (req, res) => {
-    const { name, city } = req.body;
-    
     try {
-        if(!name || !city) {
-            throw Object.assign( new Error('Faltan valores necesarios para crear el cinema'),
-            {
-                status: 400,
-                code: "MISSING_KEY_PROPERTIES",
-                timestamp: new Date().toISOString()
-            })
-        }
-        
-        const createQuery = `
-        INSERT INTO cinemas
-        (name, city)
-        VALUES (?, ?)`
+        const { columns, placeholders, values } = postCinemaQuery(req.body);
 
-        const [result] = await req.pool.query(createQuery, [name, city]);
+        const createQuery = `INSERT INTO cinemas (${columns.join(', ')}) VALUES (${placeholders.join(', ')})`;
 
-        return res.status(201).json( {message: 'Cinema creado satisfactoriamente'} );
+        await req.pool.query(createQuery, values);
+        const [row] = await req.pool.query('SELECT * FROM cinemas WHERE name = ?', req.body.name);
+
+        return res.status(201).json(row[0]);
     } catch(error) {
         console.error("Error creando cinema:", error.code||error);
         return res.status(error.status||500).json( {error: error.message||error} );

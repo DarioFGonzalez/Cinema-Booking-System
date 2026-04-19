@@ -9,7 +9,7 @@ const cinemasRouter = Router();
  * @swagger
  * /cinemas:
  *   post:
- *     summary: Crea un nuevo cinema
+ *     summary: Crea un nuevo cinema.
  *     description: Enviamos datos básicos para crear un nuevo Cinema en la base de datos..
  *     tags:
  *       - Cinemas
@@ -19,11 +19,16 @@ const cinemasRouter = Router();
  *         application/json:
  *           schema:
  *             type: object
+ *             required:
+ *               - name
+ *               - city
  *             properties:
  *               name:
  *                 type: string
  *               city:
  *                 type: string
+ *               is_active:
+ *                 type: boolean
  *           examples:
  *               cine_en_caballito:
  *                 summary: ✔ Cine en Caballito.
@@ -35,19 +40,31 @@ const cinemasRouter = Router();
  *                 value:
  *                   name: Hoyts Almagro
  *                   city: Almagro
- *               cine_en_varela:
- *                 summary: ✔ Sala de cine experimental en la calle varela.
+ *               solo_datos_necesarios:
+ *                 summary: ✔ Enviamos solo datos necesarios.
  *                 value:
- *                   name: Cine experimental Varela
- *                   city: Flores
- *               cine_en_microcentro:
- *                 summary: ✔ Sala de cine independiente en microcentro.
+ *                   name: Cine ejemplo
+ *                   city: Ciudad ejemplo
+ *               enviar_con_datos_opcionales:
+ *                 summary: ✔ Enviamos datos opcionales también.
+ *                 description: Si no enviamos los datos opcionales, en este caso is_active, este quedaría en 1 (activo) por defecto.
  *                 value:
  *                   name: Cine independiente microcentro
  *                   city: Microcentro
- *               datos_insuficientes:
- *                 summary: ✖ Enviar datos insuficientes para la creación.
- *                 description: Si no enviamos todos los datos críticos para la creación del cinema, recibiremos como respuesta un error 400 "Faltan valores necesarios para crear el cinema".
+ *                   is_active: 0
+ *               enviar_datos_extra:
+ *                 summary: ⚠ Todo dato extra será ignorado.
+ *                 description: En caso de recibir datos extra estos serán ignorados y se creará el registro con los datos obligatorios.
+ *                 value:
+ *                   name: Cineapolis NORTE
+ *                   city: Nordelta
+ *                   is_active: 0
+ *                   province: Buenos Aires
+ *                   country: Argentina
+ *                   zipcode: b1616
+ *               no_enviar_dato_obligatorio:
+ *                 summary: ✖ No enviar todos los datos necesarios.
+ *                 description: En caso de no recibir datos clave, recibiremos un error detallando los campos faltantes.<br>(400) `Faltan campos obligatorios> {datos faltantes}`
  *                 value:
  *                   name: Solo el nombre
  *     responses:

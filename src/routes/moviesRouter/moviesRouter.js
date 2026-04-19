@@ -11,7 +11,7 @@ const moviesRouter = Router();
  * /movies:
  *   post:
  *     summary: Crea un nuevo registro de pelicula.
- *     description: Creamos un nuevo registro de pelicula enviando sus datos por body.
+ *     description: Crea un nuevo registro de pelicula enviando sus datos por body.
  *     tags:
  *       - Peliculas
  *     requestBody:
@@ -20,6 +20,10 @@ const moviesRouter = Router();
  *         application/json:
  *           schema:
  *             type: object
+ *             required:
+ *               - title
+ *               - genre
+ *               - duration
  *             properties:
  *               title:
  *                 type: string
@@ -32,20 +36,20 @@ const moviesRouter = Router();
  *                 format: date
  *           examples:
  *               todos_los_datos_necesarios:
- *                 summary: ✔ Enviar todos los datos necesarios.
- *                 description: Si enviamos todos los datos necesarios, el registro se creará con éxito.
+ *                 summary: ✔ Enviamos solo datos necesarios.
+ *                 description: Si enviamos solo los datos necesarios, el registro se creará con éxito.
+ *                 value:
+ *                   title: Pulp Fiction
+ *                   genre: Comedia negra
+ *                   duration: 
+ *               enviamos_datos_opcionales:
+ *                 summary: ✔ Enviamos datos opcionales también.
+ *                 description: Podemos enviar los datos opcionales también. En este caso, la fecha de lanzamiento. Sino, quedaría en NULL.
  *                 value:
  *                   title: Duro de matar
  *                   genre: Acción
  *                   duration: 132
  *                   release_date: 1988-07-12
- *               faltan_datos_necesarios:
- *                 summary: ✖ No enviar todos los datos necesarios.
- *                 description: Si falta algún dato crítico, recibiremos como respuesta un error.
- *                 value:
- *                   title: Jurassic Park
- *                   genre: Aventura
- *                   release_date: 1993-06-09
  *               enviar_datos_extra:
  *                 summary: ⚠ Todo dato extra será ignorado.
  *                 description: No es la mejor práctica, pero en caso de recibir datos extra estos serán ignorados y se creará el registro con los datos mandatorios.
@@ -57,6 +61,13 @@ const moviesRouter = Router();
  *                   director: James Cameron
  *                   country: Estados Unidos
  *                   budget: 200000000
+ *               faltan_datos_necesarios:
+ *                 summary: ✖ No enviar todos los datos necesarios.
+ *                 description: Si falta algún dato crítico, recibiremos como respuesta un error.
+ *                 value:
+ *                   title: Jurassic Park
+ *                   genre: Aventura
+ *                   release_date: 1993-06-09
  *     responses:
  *       201:
  *         description: Pelicula creada exitosamente, devuelve el registro recién creado junto a un código 201.
