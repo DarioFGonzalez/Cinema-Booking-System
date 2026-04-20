@@ -62,7 +62,8 @@ El código es funcional y limpio, pero el verdadero valor está en la documentac
 ---
 
 ### Project Structure
-```src/
+```
+src/
 ├── config/
 │   ├── db.js              # MySQL connection pool with mysql2/promise
 │   ├── server.js          # Express app, middleware, Swagger mount
@@ -162,10 +163,10 @@ El código es funcional y limpio, pero el verdadero valor está en la documentac
 |--------|----------|-------------|
 | `POST` | `/rooms` | Crear sala (cinema_id, capacity requeridos) |
 | `GET` | `/rooms` | Listar todas |
-| `GET` | `/rooms/:id` | Obtener sala + contadores de shows |
-| `GET` | `/rooms/:id/status?status=active` | Filtrar shows por estado |
-| `PATCH` | `/rooms/:id` | ⏳ Próximamente |
-| `DELETE` | `/rooms/:id` | ⏳ Próximamente |
+| `GET` | `/rooms/:id` | Obtener sala + contadores de shows + shows activos |
+| `GET` | `/rooms/search?cinema_id=&capacity=&is_active=` | Buscar por filtros dinámicos |
+| `PATCH` | `/rooms/:id` | Actualizar capacidad o estado |
+| `DELETE` | `/rooms/:id` | Eliminar físicamente |
 
 ### 🎟️ Shows (próximamente)
 
@@ -220,7 +221,7 @@ El servidor arrancará en `http://localhost:5000`
 |--------|--------|---------------|
 | Cinemas CRUD | ✅ | ✅ Swagger |
 | Movies CRUD | ✅ | ✅ Swagger |
-| Rooms CRUD (parcial) | ✅ | ✅ Swagger |
+| Rooms CRUD | ✅ | ✅ Swagger |
 | Shows CRUD | ⏳ | 📅 Pendiente |
 | Relaciones FK avanzadas | 📅 | 📅 Pendiente |
 

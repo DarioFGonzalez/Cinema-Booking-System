@@ -1,5 +1,81 @@
 # Changelog
 
+## [Rooms Module] - 2026-04-20
+
+### Added
+
+#### Core endpoints (completed)
+- **GET /rooms/search** (`src/handlers/roomsHandlers/getRooms.js`)
+  - Dynamic search with query parameters
+  - Allowed filters: `cinema_id`, `capacity`, `is_active`
+  - Returns array of rooms matching all provided filters
+  - 400 if no valid filters provided
+
+- **PATCH /rooms/{id}** (`src/handlers/roomsHandlers/updateRoom.js`)
+  - Updates allowed fields: `capacity`, `is_active`
+  - Uses `updateRoomQuery` builder with whitelist validation
+  - Returns updated room
+  - 400 if no valid fields to update
+  - 404 if room not found
+
+- **DELETE /rooms/{id}** (`src/handlers/roomsHandlers/deleteRoom.js`)
+  - Hard delete (physical removal)
+  - Validates integer ID format before query
+  - Returns 204 No Content on success
+  - 400 if ID invalid or room not found
+
+#### Query Builders
+- **`searchRoomsQuery`** (`src/utils/queryBuilder.js`)
+  - Built from `getByQueryBuilder(['cinema_id', 'capacity', 'is_active'])`
+  - Returns `{ filters, values }` for dynamic WHERE clause
+  - Throws `NO_VALID_FILTERS_TO_SEARCH` if no valid filters provided
+
+- **`updateRoomQuery`** (`src/utils/queryBuilder.js`)
+  - Built from `updateQueryBuilder(['capacity', 'is_active'])`
+  - Returns `{ conditions, values }` for UPDATE query
+  - Reuses existing `updateQueryBuilder` currying pattern
+
+#### Validations
+- **`validateIntegerId`** (`src/utils/validations.js`)
+  - Validates that ID is a valid integer (not NaN, finite)
+  - Used for rooms and movies (INT primary keys)
+  - Throws `INVALID_ID_FORMAT` with 400 status
+
+### Error Handling (new)
+- `400 NO_VALID_FILTERS_TO_SEARCH` → search with no valid query parameters
+- `400 COULDNT_DELETE_ROOM` → DELETE affected 0 rows (room doesn't exist)
+- `400 INVALID_ID_FORMAT` → ID is not a valid integer (from `validateIntegerId`)
+
+### Swagger Documentation (updated)
+- Added `GET /rooms/search` with query parameter examples
+  - `cinema_id` (string, UUID example)
+  - `capacity` (integer, example: 33)
+  - `is_active` (boolean, example: false)
+- Added `PATCH /rooms/{id}` with examples:
+  - Change single property
+  - Change multiple properties
+  - Mixed valid/invalid fields (ignores invalid)
+  - Only invalid fields (400 response)
+  - Empty body (400 response)
+- Added `DELETE /rooms/{id}` with 204 response example
+
+### Technical Decisions
+- Search uses `GET` with query params (RESTful, cacheable, bookmarkable)
+- Hard delete for rooms (acceptable since rooms without shows can be deleted)
+- `validateIntegerId` separated from UUID validation (different resources, different ID types)
+- Search returns 200 with empty array if no matches (not 404)
+
+### Notes
+- `GET /rooms/{id}` includes both stats and active shows (practical for frontend)
+- Search endpoint uses `AND` logic (all filters must match)
+- `validateIntegerId` used for rooms and movies (consistent INT validation)
+- PATCH supports partial updates (only send what you want to change)
+
+### Next Steps
+- [ ] Shows module implementation (CRUD + schedules)
+- [ ] Pagination for `GET /rooms` and `GET /rooms/search`
+- [ ] Soft delete for rooms (optional, toggle pattern)
+
 ## [Cinema API v1.0] - 2026-04-19
 
 ### Final Status
