@@ -1,3 +1,5 @@
+const { searchRoomsQuery } = require("../../utils/queryBuilder");
+
 const getAllRooms = async (req, res) => {
     try {
         const [allRooms] = await req.pool.query('SELECT * FROM rooms');
@@ -39,7 +41,14 @@ const getRoomById = async (req, res) => {
         FROM shows
         WHERE room_id = ?`;
 
+        const activeShowsQuery = `
+        SELECT
+        id, movie_id, show_time
+        FROM shows WHERE is_active = TRUE AND room_id = ?`;
+
         const [stats] = await req.pool.query(statsQuery, [id]);
+
+        const [activeShows] = await req.pool.query(activeShowsQuery, [id]);
 
         const thisRoom = row[0];
 
@@ -49,6 +58,8 @@ const getRoomById = async (req, res) => {
             total_shows: stats[0].total
         };
 
+        thisRoom.activeShows = activeShows;
+
         return res.status(200).json( thisRoom );
     } catch(error) {
         console.error("Error trayendo sala por ID:", error.code||error);
@@ -56,55 +67,19 @@ const getRoomById = async (req, res) => {
     }
 }
 
-const getRoomShowsByStatus = async (req, res) => {
-    const { status } = req.query;
-    const { id } = req.params;
+const getRoomsByQuery = async (req, res) => {
     try {
-        if(!id) {
-        throw Object.assign( new Error('ID no recibido'),
-        {
-            status: 400,
-            code: 'NO_ID_RECEIVED',
-            timestamp: new Date().toISOString()
-        })
-        }
-        if(!status) {
-            throw Object.assign( new Error('No se recibió parametro de búsqueda'),
-            {
-                status: 400,
-                code: 'MISSING_SEARCH_PARAMETERS',
-                timestamp: new Date().toISOString()
-            })
-        }
-
-        const [thisRoom] = await req.pool.query('SELECT id FROM rooms WHERE id = ?', [id]);
-        if(thisRoom.length===0) {
-            throw Object.assign( new Error('Sala no encontrada'),
-            {
-                status: 404,
-                code: 'ROOM_NOT_FOUND',
-                timestamp: new Date().toISOString()
-            })
-        }
+        const {filters, values} = searchRoomsQuery(req.body);
         
-        const is_active = status==='active' ? 'TRUE' : status === 'inactive' ? 'FALSE' : null;
-        if(is_active===null) {
-            throw Object.assign( new Error('Parámetro de búsqueda inválido.'),
-            {
-                status: 400,
-                code: 'INVALID_SEARCH_PARAMETER',
-                timestamp: new Date().toISOString()
-            })
-        }
+        const searchQuery = `SELECT * FROM rooms WHERE ${filters.join(' AND ')}`;
 
-        const byStatusQuery = `SELECT * FROM shows WHERE is_active = ? AND room_id = ?`;
+        const [rooms] = await req.pool.query(searchQuery, values);
 
-        const [statusShows] = await req.pool.query(byStatusQuery, [is_active, id]);
-        return res.status(200).json(statusShows);
+        return res.status(200).json(rooms);
     } catch(error) {
-        console.error("Error trayendo shows por status:", error.code||error);
+        console.error("Error buscando salas por query:", error.code||error);
         return res.status(error.status||500).json({error: error.message||error});
     }
 }
 
-module.exports = {getAllRooms, getRoomById, getRoomShowsByStatus};
+module.exports = {getAllRooms, getRoomById, getRoomsByQuery};

@@ -5,6 +5,27 @@ const isValidUUID = (uuid) => {
     return uuidRegex.test(uuid);
 }
 
+const validateIntegerId = (id) => {
+    if(!id) {
+        throw Object.assign( new Error('ID no recibido'),
+        {
+            status: 400,
+            code: "NO_ID_RECEIVED",
+            timestamp: new Date().toISOString()
+        })
+    }
+    if(isNaN(parseInt(id)))
+    {
+        throw Object.assign( new Error('Formato del ID inválido'),
+        {
+            status:400,
+            code: "INVALID_ID_FORMAT",
+            timestamp: new Date().toISOString()
+        })
+    }
+    return true;
+}
+
 const validateId = (id) => {
     if(!id)
     {
@@ -27,4 +48,4 @@ const validateId = (id) => {
     return true;
 }
 
-module.exports = { validateId };
+module.exports = { validateId, validateIntegerId };

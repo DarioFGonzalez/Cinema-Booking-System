@@ -1,6 +1,8 @@
 const {Router} = require('express');
 const postRoom = require('../../handlers/roomsHandlers/postRoom');
-const { getAllRooms, getRoomById, getRoomShowsByStatus } = require('../../handlers/roomsHandlers/getRooms');
+const { getAllRooms, getRoomById, getRoomShowsByStatus, getRoomsByQuery } = require('../../handlers/roomsHandlers/getRooms');
+const updateRoom = require('../../handlers/roomsHandlers/updateRoom');
+const deleteRoom = require('../../handlers/roomsHandlers/deleteRoom');
 const roomsRouter = Router();
 
 /**
@@ -98,7 +100,7 @@ roomsRouter.get('/', getAllRooms);
  * /rooms/{id}:
  *   get:
  *     summary: Busca una sala por ID.
- *     description: Busca una sala por ID y devuelve todos sus datos junto al número de shows activos, inactivos y en total que tenga relacionadas.
+ *     description: Busca una sala por ID y devuelve sus datos, estadísticas de shows y la lista de shows activos. 
  *     tags:
  *       - Salas
  *     parameters:
@@ -111,7 +113,7 @@ roomsRouter.get('/', getAllRooms);
  *        description: ID de la sala a buscar.
  *     responses:
  *       200:
- *         description: Devuelve un objeto con los datos y estadísticas de shows de la sala buscada.
+ *         description: Devuelve un objeto con los datos, estadísticas de los shows de la sala buscada y sus shows activos.
  *       400:
  *         description: No se recibió ID por parametros o tiene un formato inválido.
  *       404:
@@ -124,10 +126,46 @@ roomsRouter.get('/:id', getRoomById);
 
 /**
  * @swagger
- * /rooms/{id}/status:
+ * /rooms/search:
  *   get:
- *     summary: Busca shows de una sala por estado
- *     description: etorna todos los shows de una sala específica, filtrados por estado (activo o inactivo)
+ *     summary: Busca las salas que cumplan con los parametros de búsqueda enviados por query.
+ *     description: Utiliza los parámetros que le mandamos por query, los filtra y devuelve un array con todas las coincidencias en DDBB.
+ *     tags:
+ *       - Salas
+ *     parameters:
+ *      - in: query
+ *        name: cinema_id
+ *        schema:
+ *         type: string
+ *         example: 11111111-1111-1111-1111-111111111111
+ *        description: ID de la sala a buscar.
+ *      - in: query
+ *        name: capacity
+ *        schema:
+ *          type: integer
+ *          example: 33
+ *          description: Capacidad de la sala para filtrar.
+ *      - in: query
+ *        name: is_active
+ *        schema:
+ *          type: boolean
+ *          example: FALSE
+ *        description: Estado actual de la sala para buscar (activa/inactiva).
+ *     responses:
+ *       200:
+ *         description: Devuelve el estado actualizado de la sala.
+ *       500:
+ *         description: Error interno del servidor
+ */
+
+roomsRouter.get('/search', getRoomsByQuery);
+
+/**
+ * @swagger
+ * /rooms/{id}:
+ *   patch:
+ *     summary: Actualiza los datos no críticos de una sala.
+ *     description: Actualiza una sala, recibe los datos a actualizar por body y el ID de sala por params.
  *     tags:
  *       - Salas
  *     parameters:
@@ -137,25 +175,86 @@ roomsRouter.get('/:id', getRoomById);
  *        schema:
  *         type: string
  *         example: 1
- *        description: ID de la sala a buscar.
- *      - in: query
- *        name: status
- *        required: true
- *        schema:
- *          type: string
- *          enum: [active, inactive]
- *        description: Estado de los shows a filtrar
+ *     requestBody:
+ *       required: true
+ *       content:
+ *         application/json:
+ *           schema:
+ *             type: object
+ *             properties:
+ *               is_active:
+ *                 type: boolean
+ *               capacity:
+ *                 type: integer
+ *           examples:
+ *               cambiar_una_propiedad:
+ *                 summary: ✔ Cambiar una única propiedad.
+ *                 description: Tenemos la opción de cambiar una sola propiedad del registro, siempre y cuando sea válida.
+ *                 value:
+ *                   capacity: 33
+ *               cambiar_varias_propiedades:
+ *                 summary: ✔ Cambiar mas de una propiedad.
+ *                 value:
+ *                   capacity: 66
+ *                   is_active: 0
+ *               enviar_valores_validos_e_invalidos:
+ *                 summary: ⚠ Ignora valores inválidos.
+ *                 description: Los valores inválidos son ignorados, mientras enviemos algún valor válido por body- el servidor lo tomará y efectuará los cambios. <br>En el ejemplo enviamos un solo valor correcto (capacity) que será actualizado, mientras los demás serán ignorados.
+ *                 value:
+ *                   capacity: 66
+ *                   is_beautifull: 1
+ *                   deluxe: TRUE
+ *                   zipcode: B1415
+ *               enviar_valores_inválidos:
+ *                 summary: ✖ Enviar solo valores inválidos.
+ *                 description: Enviar solo valores que no son válidos para actualización devolverá un error 400 ("Sin condiciones para actualizar") como respuesta
+ *                 value:
+ *                   type: 3D
+ *                   catering: false
+ *               enviar_body_vacío:
+ *                 summary: ✖ Enviar body vacío.
+ *                 description: Al enviar un body vacío, el helper que construye la query de actualización lo detecta y responde con un error 400 ("No se recibió nada por body").
+ *                 value: {}
  *     responses:
  *       200:
- *         description: Lista de shows relacionados a la sala que cumplen el criterio buscado.
+ *         description: Devuelve el registro completo de la sala actualizada.
  *       400:
- *         description: El parámetro de búsqueda por query es inválido, no se recibió ninguno o no se recibió ID por parametros.
+ *         description: No encontramos datos válidos para cambiar.
  *       404:
  *         description: No se encontró una sala con esa ID en la base de datos.
  *       500:
  *         description: Error interno del servidor.
  */
 
-roomsRouter.get('/:id/status', getRoomShowsByStatus);
+roomsRouter.patch('/:id', updateRoom);
+
+/**
+ * @swagger
+ * /rooms/{id}:
+ *   delete:
+ *     summary: Borra el registro entero de la sala. [Hard delete]
+ *     tags:
+ *       - Salas
+ *     description: Se envía el ID de la sala a borrar y se quita permanentemente de la base de datos .
+ *     parameters:
+ *       - in: path
+ *         name: id
+ *         required: true
+ *         schema:
+ *           type: string
+ *           example: 2
+ *         description: ID de la sala a eliminar.
+ *     responses:
+ *       204:
+ *         description: La convención REST dice que ante un DELETE exitoso se devuelve un 204 No Content.
+ *       400:
+ *         description: No se pudo actualizar correctamente. (ID inválido o no recibido por parametro)
+ *       404:
+ *         description: No se encontró una sala con esa ID en la base de datos.
+ *       500:
+ *         description: Error interno del servidor.
+ */
+
+roomsRouter.delete('/:id', deleteRoom);
 
 module.exports = roomsRouter;

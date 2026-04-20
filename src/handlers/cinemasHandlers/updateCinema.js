@@ -7,14 +7,6 @@ const updateCinema = async (req, res) => {
     try {
         validateId(id);
         const { conditions, values } = updateCinemaQuery(req.body);
-        if(conditions.length===0) {
-            throw Object.assign( new Error('Sin condiciones para actualizar'),
-            {
-                status: 400,
-                code: 'NO_VALID_CONDITIONS_TO_UPDATE',
-                timestamp: new Date().toISOString()
-            })
-        }
 
         values.push(id);
 

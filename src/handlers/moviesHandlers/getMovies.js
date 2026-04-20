@@ -1,4 +1,4 @@
-const { validateId } = require("../../utils/validations");
+const { validateIntegerId } = require("../../utils/validations");
 
 const getAllMovies = async (req, res) => {
     try {
@@ -14,7 +14,8 @@ const getAllMovies = async (req, res) => {
 const getMovieById = async (req, res) => {
     const { id } = req.params;
     try {
-        validateId(id);
+        validateIntegerId(id);
+
         const queryById = `SELECT * FROM movies WHERE id = ?`;
 
         const [result] = await req.pool.query(queryBiId, [id]);
