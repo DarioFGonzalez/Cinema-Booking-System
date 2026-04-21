@@ -1,4 +1,5 @@
 const { searchRoomsQuery } = require("../../utils/queryBuilder");
+const { validateIntegerId } = require("../../utils/validations");
 
 const getAllRooms = async (req, res) => {
     try {
@@ -11,17 +12,25 @@ const getAllRooms = async (req, res) => {
     }
 }
 
+const getRoomsByQuery = async (req, res) => {
+    try {
+        const {filters, values} = searchRoomsQuery(req.query);
+        
+        const searchQuery = `SELECT * FROM rooms WHERE ${filters.join(' AND ')}`;
+
+        const [rooms] = await req.pool.query(searchQuery, values);
+
+        return res.status(200).json(rooms);
+    } catch(error) {
+        console.error("Error buscando salas por query:", error.code||error);
+        return res.status(error.status||500).json({error: error.message||error});
+    }
+}
+
 const getRoomById = async (req, res) => {
     const {id} = req.params;
     try{
-        if(!id) {
-            throw Object.assign( new Error('ID no recibido'),
-            {
-                status: 400,
-                code: 'NO_ID_RECEIVED',
-                timestamp: new Date().toISOString()
-            })
-        }
+        validateIntegerId(id);
 
         const [row] = await req.pool.query('SELECT id, cinema_id, capacity, is_active FROM rooms WHERE id = ?', [id]);
         if(row.length === 0) {
@@ -64,21 +73,6 @@ const getRoomById = async (req, res) => {
     } catch(error) {
         console.error("Error trayendo sala por ID:", error.code||error);
         return res.status(error.status||500).json( { error: error.message||error } );
-    }
-}
-
-const getRoomsByQuery = async (req, res) => {
-    try {
-        const {filters, values} = searchRoomsQuery(req.body);
-        
-        const searchQuery = `SELECT * FROM rooms WHERE ${filters.join(' AND ')}`;
-
-        const [rooms] = await req.pool.query(searchQuery, values);
-
-        return res.status(200).json(rooms);
-    } catch(error) {
-        console.error("Error buscando salas por query:", error.code||error);
-        return res.status(error.status||500).json({error: error.message||error});
     }
 }
 

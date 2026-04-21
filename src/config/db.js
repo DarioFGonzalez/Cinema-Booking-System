@@ -8,6 +8,8 @@ const pool = mysql.createPool({
     user: DB_USER || 'root',
     password: DB_PASSWORD || '',
     database: DB_NAME || 'cinema_db',
+    //DateTime & UTC handler
+    dateStrings: true,
     //traffic
     waitForConnections: true,
     connectionLimit: 10,

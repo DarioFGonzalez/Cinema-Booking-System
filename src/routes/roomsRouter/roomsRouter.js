@@ -1,6 +1,6 @@
 const {Router} = require('express');
 const postRoom = require('../../handlers/roomsHandlers/postRoom');
-const { getAllRooms, getRoomById, getRoomShowsByStatus, getRoomsByQuery } = require('../../handlers/roomsHandlers/getRooms');
+const { getAllRooms, getRoomById, getRoomsByQuery } = require('../../handlers/roomsHandlers/getRooms');
 const updateRoom = require('../../handlers/roomsHandlers/updateRoom');
 const deleteRoom = require('../../handlers/roomsHandlers/deleteRoom');
 const roomsRouter = Router();
@@ -97,6 +97,45 @@ roomsRouter.get('/', getAllRooms);
 
 /**
  * @swagger
+ * /rooms/search:
+ *   get:
+ *     summary: Busca las salas que cumplan con los parametros de búsqueda enviados por query.
+ *     description: Utiliza los parámetros que le mandamos por query, los filtra y devuelve un array con todas las coincidencias en DDBB.
+ *     tags:
+ *       - Salas
+ *     parameters:
+ *      - in: query
+ *        name: cinema_id
+ *        schema:
+ *         type: string
+ *         example: 11111111-1111-1111-1111-111111111111
+ *        description: ID del cinema al que están relacionadas las salas.
+ *      - in: query
+ *        name: capacity
+ *        schema:
+ *          type: integer
+ *          example: 80
+ *          description: Filtra por capacidad de sala.
+ *      - in: query
+ *        name: is_active
+ *        schema:
+ *          type: integer
+ *          enum: [0, 1]
+ *          example: 1
+ *        description: Filtra por estado activo (1) o inactivo (0)
+ *     responses:
+ *       200:
+ *         description: Devuelve un array con todas las coincidencias en DDBB.
+ *       400:
+ *         description: Se envió un body vacío ó ningún filtro válido para búsqueda.
+ *       500:
+ *         description: Error interno del servidor
+ */
+
+roomsRouter.get('/search', getRoomsByQuery);
+
+/**
+ * @swagger
  * /rooms/{id}:
  *   get:
  *     summary: Busca una sala por ID.
@@ -123,42 +162,6 @@ roomsRouter.get('/', getAllRooms);
  */
 
 roomsRouter.get('/:id', getRoomById);
-
-/**
- * @swagger
- * /rooms/search:
- *   get:
- *     summary: Busca las salas que cumplan con los parametros de búsqueda enviados por query.
- *     description: Utiliza los parámetros que le mandamos por query, los filtra y devuelve un array con todas las coincidencias en DDBB.
- *     tags:
- *       - Salas
- *     parameters:
- *      - in: query
- *        name: cinema_id
- *        schema:
- *         type: string
- *         example: 11111111-1111-1111-1111-111111111111
- *        description: ID de la sala a buscar.
- *      - in: query
- *        name: capacity
- *        schema:
- *          type: integer
- *          example: 33
- *          description: Capacidad de la sala para filtrar.
- *      - in: query
- *        name: is_active
- *        schema:
- *          type: boolean
- *          example: FALSE
- *        description: Estado actual de la sala para buscar (activa/inactiva).
- *     responses:
- *       200:
- *         description: Devuelve el estado actualizado de la sala.
- *       500:
- *         description: Error interno del servidor
- */
-
-roomsRouter.get('/search', getRoomsByQuery);
 
 /**
  * @swagger
