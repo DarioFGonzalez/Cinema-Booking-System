@@ -20,7 +20,7 @@
 
 ## 🧪 ¿Qué es este proyecto?
 
-Una API REST para gestión de cines, películas, salas y (próximamente) funciones.
+Una API REST para gestión de cines, películas, salas y funciones.
 
 **El foco NO es la complejidad del negocio, sino la calidad de la documentación.**
 
@@ -34,10 +34,9 @@ Una API REST para gestión de cines, películas, salas y (próximamente) funcion
 - ✅ Código limpio y separado por capas
 
 ### Lo que está en camino (y también se documentará):
-- 🔄 Módulo Shows (con room_id, movie_id, is_active)
-- 🔄 Eventos en cascada (ON DELETE CASCADE / RESTRICT)
-- 🔄 Soft delete y hard delete según corresponda
 - 🔄 Paginación en listados
+- 🔄 Tests unitarios y de integración
+- 🔄 Soft delete consistente (toggle en todas las tablas)
 
 ### Lo que NO tiene (ni va a tener):
 - ❌ JWT / autenticación (no es el objetivo)
@@ -80,17 +79,29 @@ src/
 │   │   ├── postMovie.js       # POST create (mandatory: title, duration, genre)
 │   │   ├── updateMovie.js     # PATCH update (partial)
 │   │   └── deleteMovie.js     # DELETE hard delete
-│   └── roomsHandlers/
-│       ├── getRooms.js        # GET all, GET by id (with show counters), GET by status
-│       ├── postRoom.js        # POST create (validates cinema_id exists)
-│       └── updateRoom.js      # PATCH update, DELETE hard delete
+│   ├── roomsHandlers/
+│   │   ├── getRooms.js        # GET all, GET by id (with show counters), GET by search
+│   │   ├── postRoom.js        # POST create (validates cinema_id exists)
+│   │   ├── updateRoom.js      # PATCH update
+│   │   └── deleteRoom.js      # DELETE hard delete
+│   └── showsHandlers/
+│       ├── getShows.js        # GET all, GET by id (with movie/room nested), GET by search
+│       ├── postShow.js        # POST create (validates movie_id and room_id exist)
+│       ├── updateShow.js      # PATCH update
+│       └── deleteShow.js      # DELETE hard delete
 ├── routes/
-│   ├── cinemasRouter.js   # Swagger docs + route definitions
-│   ├── moviesRouter.js    # Swagger docs + route definitions
-│   └── roomsRouter.js     # Swagger docs + route definitions
+│   ├── cinemasRouter/
+│   │   └── cinemasRouter.js    # Swagger docs + route definitions
+│   ├── moviesRouter/
+│   │   └── moviesRouter.js     # Swagger docs + route definitions
+│   ├── roomsRouter/
+│   │   └── roomsRouter.js      # Swagger docs + route definitions
+│   ├── showsRouter/
+│   │   └── showsRouter.js      # Swagger docs + route definitions
+│   └── mainRouter.js           # Swagger docs + route definitions
 ├── utils/
 │   ├── queryBuilder.js    # postQueryBuilder, updateQueryBuilder, checkMandatoryColumns
-│   └── validations.js     # validateId (UUID), isNaN for INT ids
+│   └── validations.js     # validateId (UUID), validateIntegerId (INT)
 └── server.js              # Entry point (starts server, connects DB, runs init-db)
 ```
 
@@ -168,15 +179,16 @@ src/
 | `PATCH` | `/rooms/:id` | Actualizar capacidad o estado |
 | `DELETE` | `/rooms/:id` | Eliminar físicamente |
 
-### 🎟️ Shows (próximamente)
+### 🎟️ Shows
 
 | Método | Endpoint | Descripción |
 |--------|----------|-------------|
-| `POST` | `/shows` | Crear función (movie_id, room_id, show_time, price) |
-| `GET` | `/shows` | Listar funciones |
-| `GET` | `/shows/:id` | Obtener función por ID |
+| `POST` | `/shows` | Crear función (movie_id, room_id, show_time, price requeridos) |
+| `GET` | `/shows` | Listar todas las funciones |
+| `GET` | `/shows/search?movie_id=&room_id=&show_time=&price=` | Buscar por filtros dinámicos |
+| `GET` | `/shows/:id` | Obtener función por ID (incluye película y sala como objetos anidados) |
 | `PATCH` | `/shows/:id` | Actualizar función |
-| `DELETE` | `/shows/:id` | Eliminar función |
+| `DELETE` | `/shows/:id` | Eliminar físicamente |
 
 ---
 
@@ -210,10 +222,10 @@ El servidor arrancará en `http://localhost:5000`
 
 ## 🔄 Próximos pasos (en este proyecto)
 
-- [ ] Módulo Shows (funciones por sala)
-- [ ] Relaciones con ON DELETE CASCADE / RESTRICT
 - [ ] Paginación en listados
+- [ ] Relaciones con ON DELETE CASCADE / RESTRICT (ya implementadas, documentar)
 - [ ] Soft delete consistente
+- [ ] Tests unitarios y de integración
 
 ## 📊 Progreso actual
 
@@ -222,8 +234,8 @@ El servidor arrancará en `http://localhost:5000`
 | Cinemas CRUD | ✅ | ✅ Swagger |
 | Movies CRUD | ✅ | ✅ Swagger |
 | Rooms CRUD | ✅ | ✅ Swagger |
-| Shows CRUD | ⏳ | 📅 Pendiente |
-| Relaciones FK avanzadas | 📅 | 📅 Pendiente |
+| Shows CRUD | ✅ | ✅ Swagger |
+| Relaciones FK avanzadas | ✅ | ✅ Swagger |
 
 ## 👨‍💻 Autor
 

@@ -1,5 +1,103 @@
 # Changelog
 
+## [Shows Module] - 2026-04-21
+
+### Schema
+- `id INT PRIMARY KEY AUTO_INCREMENT`
+- `movie_id INT NOT NULL` (FK to movies.id, ON DELETE RESTRICT)
+- `room_id INT NOT NULL` (FK to rooms.id, ON DELETE RESTRICT)
+- `show_time DATETIME NOT NULL`
+- `price DECIMAL(10,2) NOT NULL`
+- `is_active BOOLEAN DEFAULT TRUE`
+- `created_at DATETIME DEFAULT CURRENT_TIMESTAMP`
+- `updated_at DATETIME DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP`
+
+### Added
+
+#### Core endpoints
+- **POST /shows** (`src/handlers/showsHandlers/postShow.js`)
+  - Mandatory: `movie_id`, `room_id`, `show_time`, `price`
+  - Optional: `is_active` (defaults to TRUE)
+  - Validates movie exists before insert (404 if not found)
+  - Validates room exists before insert (404 if not found)
+  - Returns created show with generated ID
+
+- **GET /shows** (`src/handlers/showsHandlers/getShows.js`)
+  - Returns all shows with basic fields (id, movie_id, room_id, show_time, price, is_active)
+
+- **GET /shows/search** (`src/handlers/showsHandlers/getShows.js`)
+  - Dynamic search with query parameters
+  - Allowed filters: `movie_id`, `room_id`, `show_time`, `price`
+  - Returns array of shows matching all provided filters
+  - 400 if no valid filters provided
+
+- **GET /shows/{id}** (`src/handlers/showsHandlers/getShows.js`)
+  - Returns show with related movie and room as nested objects
+  - Uses three separate queries (compatible with PostgreSQL, SQLite, etc.)
+  - 404 if show not found
+
+- **PATCH /shows/{id}** (`src/handlers/showsHandlers/updateShow.js`)
+  - Updates allowed fields: `movie_id`, `room_id`, `show_time`, `price`, `is_active`
+  - Uses `updateShowQuery` builder with whitelist validation
+  - Returns updated show
+  - 400 if no valid fields to update
+  - 404 if show not found
+
+- **DELETE /shows/{id}** (`src/handlers/showsHandlers/deleteShow.js`)
+  - Hard delete (physical removal)
+  - Validates integer ID format before query
+  - Returns 204 No Content on success
+  - 400 if ID invalid or show not found
+
+#### Query Builders
+- **`postShowQuery`** (`src/utils/queryBuilder.js`)
+  - Mandatory: `movie_id`, `room_id`, `show_time`, `price`
+  - Optional: `is_active`
+  - Uses `checkMandatoryColumns` for validation
+
+- **`updateShowQuery`** (`src/utils/queryBuilder.js`)
+  - Built from `updateQueryBuilder(['movie_id', 'room_id', 'show_time', 'price', 'is_active'])`
+  - Returns `{ conditions, values }` for UPDATE query
+
+- **`searchShowsQuery`** (`src/utils/queryBuilder.js`)
+  - Built from `getByQueryBuilder(['movie_id', 'room_id', 'show_time', 'price'])`
+  - Returns `{ filters, values }` for dynamic WHERE clause
+  - Throws `NO_VALID_FILTERS_TO_SEARCH` if no valid filters provided
+
+### Error Handling
+- `400 NO_VALID_FILTERS_TO_SEARCH` → search with no valid query parameters
+- `400 COULDNT_DELETE_SHOW` → DELETE affected 0 rows (show doesn't exist)
+- `400 INVALID_ID_FORMAT` → ID is not a valid integer
+- `400 SHOW_CREATION_FAILED` → insert didn't generate insertId (should be 500, fixed)
+- `404 MOVIE_NOT_FOUND` → referenced movie doesn't exist
+- `404 ROOM_NOT_FOUND` → referenced room doesn't exist
+- `404 SHOW_NOT_FOUND` → show ID doesn't exist
+
+### Technical Decisions
+- Foreign key validation before insert (clean 404 errors instead of MySQL FK errors)
+- Three separate queries for `GET /shows/{id}` (compatible with all SQL databases)
+- `dateStrings: true` in DB config to prevent mysql2 from converting DATETIME to UTC
+- Hard delete for shows (acceptable for demo, no historical dependencies)
+- Search returns 200 with empty array if no matches (not 404)
+- Show time uses `YYYY-MM-DD HH:MM:SS` format in Swagger examples (MySQL DATETIME compatible)
+
+### Swagger Documentation
+- OpenAPI spec for all show endpoints
+- Examples: success, missing mandatory fields, invalid movie/room IDs, extra data ignored
+- Query parameters with examples for search endpoint
+- Response schemas with nested movie and room objects for `GET /shows/{id}`
+
+### Notes
+- `show_time` format in examples uses space instead of `T` to match MySQL DATETIME
+- `dateStrings: true` in `db.js` ensures DATETIME values return as strings, not Date objects
+- `GET /shows/{id}` returns `{ id, show_time, price, is_active, movie: {...}, room: {...} }`
+- All queries use parameterized placeholders (SQL injection safe)
+
+### Next Steps
+- [ ] Pagination for `GET /shows` and `GET /shows/search`
+- [ ] Soft delete for shows (optional)
+- [ ] Seat reservation system (future feature)
+
 ## [Rooms Module] - 2026-04-20
 
 ### Added
