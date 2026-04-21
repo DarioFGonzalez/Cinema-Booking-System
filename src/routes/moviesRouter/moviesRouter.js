@@ -1,7 +1,7 @@
 const {Router} = require('express');
 const postMovie = require('../../handlers/moviesHandlers/postMovie');
-const { getAllMovies, getMovieById } = require('../../handlers/moviesHandlers/getMovies');
-const updateMovie = require('../../handlers/moviesHandlers/updateMovie');
+const { getAllMovies, getMovieById, getMoviesByQuery } = require('../../handlers/moviesHandlers/getMovies');
+const {updateMovie, toggleMovie} = require('../../handlers/moviesHandlers/updateMovie');
 const deleteMovie = require('../../handlers/moviesHandlers/deleteMovie');
 
 const moviesRouter = Router();
@@ -114,6 +114,58 @@ moviesRouter.get('/', getAllMovies);
 
 /**
  * @swagger
+ * /movies/search:
+ *   get:
+ *     summary: Busca las peliculas que cumplan con los parametros de búsqueda enviados por query.
+ *     description: Utiliza los parámetros que le mandamos por query, los filtra y devuelve un array con todas las coincidencias en DDBB.
+ *     tags:
+ *       - Peliculas
+ *     parameters:
+ *      - in: query
+ *        name: title
+ *        schema:
+ *         type: string
+ *         example: Oppenheimer
+ *        description: Filtramos películas por título.
+ *      - in: query
+ *        name: duration
+ *        schema:
+ *          type: integer
+ *          example: 180
+ *          description: Filtra por duración de la película.
+ *      - in: query
+ *        name: genre
+ *        schema:
+ *          type: string
+ *          example: Drama histórico
+ *        description: Filtra por el genero de la película.
+ *      - in: query
+ *        name: release_date
+ *        schema:
+ *          type: string
+ *          format: date
+ *          example: 2023-07-20
+ *        description: Filtra por la fecha de estreno de la película.
+ *      - in: query
+ *        name: added_at
+ *        schema:
+ *          type: string
+ *          format: date-time
+ *          example: 2026-04-21 16:45:00
+ *        description: Filtra por la fecha en donde se agregó la película a cartelera.
+ *     responses:
+ *       200:
+ *         description: Devuelve un array con todas las coincidencias en DDBB.
+ *       400:
+ *         description: Se envió un body vacío ó ningún filtro válido para búsqueda.
+ *       500:
+ *         description: Error interno del servidor
+ */
+
+moviesRouter.get('/search', getMoviesByQuery);
+
+/**
+ * @swagger
  * /movies/{id}:
  *   get:
  *     summary: Busca una pelicula por ID.
@@ -215,6 +267,35 @@ moviesRouter.get('/:id', getMovieById);
  */
 
 moviesRouter.patch('/:id', updateMovie);
+
+/**
+ * @swagger
+ * /movies/{id}/toggle:
+ *   patch:
+ *     summary: Cambia el estado (activo/inactivo) de una película.
+ *     tags:
+ *       - Peliculas
+ *     description: Se fija el estado actual de la película y lo settea en su opuesto (toggle).
+ *     parameters:
+ *       - in: path
+ *         name: id
+ *         required: true
+ *         schema:
+ *           type: string
+ *           example: 1
+ *         description: ID(integer) de la película.
+ *     responses:
+ *       200:
+ *         description: Cambia el estado de la película, devuelve un mensaje de éxito.
+ *       400:
+ *         description: No se pudo actualizar correctamente. (ID inválido o no recibido por parametro)
+ *       404:
+ *         description: No se encontró una película con esa ID en la base de datos.
+ *       500:
+ *         description: Error interno del servidor.
+ */
+
+moviesRouter.patch('/:id/toggle', toggleMovie);
 
 /**
  * @swagger

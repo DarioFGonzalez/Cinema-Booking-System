@@ -1,5 +1,4 @@
 const pool = require('./db');
-const crypto = require('crypto');
 
 const FIXED_CINEMA_ID = '11111111-1111-1111-1111-111111111111';
 
@@ -14,7 +13,7 @@ const tables = {
             updated_at DATETIME DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP
         )
     `,
-    
+
     movies: `
         CREATE TABLE IF NOT EXISTS movies (
             id INT PRIMARY KEY AUTO_INCREMENT,
@@ -26,7 +25,7 @@ const tables = {
             release_date DATE
         )
     `,
-    
+
     rooms: `
         CREATE TABLE IF NOT EXISTS rooms (
             id INT PRIMARY KEY AUTO_INCREMENT,
@@ -37,7 +36,7 @@ const tables = {
             FOREIGN KEY (cinema_id) REFERENCES cinemas(id) ON DELETE CASCADE
         )
     `,
-    
+
     shows: `
         CREATE TABLE IF NOT EXISTS shows (
             id INT PRIMARY KEY AUTO_INCREMENT,
@@ -64,23 +63,26 @@ async function seedTestCinema() {
                 is_active = VALUES(is_active)
         `, [FIXED_CINEMA_ID]);
 
+        const fixedDateTime = '2026-04-21 16:45:00';
+
         const moviesSeed = [
-            [1, 'Dune: Parte 2', 166, 'Ciencia ficción', '2024-02-28'],
-            [2, 'Poor Things', 141, 'Comedia dramática', '2024-01-25'],
-            [3, 'Oppenheimer', 180, 'Drama histórico', '2023-07-20']
+            [1, 'Dune: Parte 2', 166, 'Ciencia ficción', '2024-02-28', fixedDateTime],
+            [2, 'Poor Things', 141, 'Comedia dramática', '2024-01-25', fixedDateTime],
+            [3, 'Oppenheimer', 180, 'Drama histórico', '2023-07-20', fixedDateTime]
         ];
 
-        const moviePlaceholders = moviesSeed.map(() => '(?, ?, ?, ?, ?)').join(', ');
+        const moviePlaceholders = moviesSeed.map(() => '(?, ?, ?, ?, ?, ?)').join(', ');
         const movieFlatValues = moviesSeed.flat();
 
         await pool.query(`
-            INSERT INTO movies (id, title, duration, genre, release_date) 
+            INSERT INTO movies (id, title, duration, genre, release_date, added_at) 
             VALUES ${moviePlaceholders}
             ON DUPLICATE KEY UPDATE 
                 title = VALUES(title),
                 duration = VALUES(duration),
                 genre = VALUES(genre),
-                release_date = VALUES(release_date)
+                release_date = VALUES(release_date),
+                added_at = VALUES(added_at)
         `, movieFlatValues);
 
         const roomsSeed = [
@@ -100,6 +102,26 @@ async function seedTestCinema() {
                 is_active = VALUES(is_active)
         `, roomsFlatValues);
 
+        const showsSeed = [
+            [1, 1, 1, '2026-04-21 18:00:00', 7500.00, true],
+            [2, 2, 1, '2026-04-21 20:30:00', 8500.00, true],
+            [3, 3, 2, '2026-04-22 19:00:00', 9200.50, true]
+        ];
+
+        const showsPlaceholders = showsSeed.map(() => '(?, ?, ?, ?, ?, ?)').join(', ');
+        const showsFlatValues = showsSeed.flat();
+
+        await pool.query(`
+            INSERT INTO shows (id, movie_id, room_id, show_time, price, is_active) 
+            VALUES ${showsPlaceholders}
+            ON DUPLICATE KEY UPDATE 
+                movie_id = VALUES(movie_id),
+                room_id = VALUES(room_id),
+                show_time = VALUES(show_time),
+                price = VALUES(price),
+                is_active = VALUES(is_active)
+        `, showsFlatValues);
+
     } catch (error) {
         console.warn('Error en seed:', error.message);
     }
@@ -109,18 +131,18 @@ async function initializeDatabase() {
     try {
         await pool.query(tables.cinemas);
         console.log('Tabla cinemas lista');
-        
+
         await pool.query(tables.movies);
         console.log('Tabla movies lista');
-        
+
         await pool.query(tables.rooms);
         console.log('Tabla rooms lista');
-        
+
         await pool.query(tables.shows);
         console.log('Tabla shows lista');
-        
+
         await seedTestCinema();
-        
+
         console.log('Base de datos inicializada correctamente');
     } catch (error) {
         console.error('Error inicializando DB:', error.message);
@@ -128,4 +150,4 @@ async function initializeDatabase() {
     }
 }
 
-module.exports = {initializeDatabase};
+module.exports = { initializeDatabase };

@@ -1,5 +1,5 @@
 const { updateMoviesQuery } = require("../../utils/queryBuilder");
-const { validateId } = require("../../utils/validations");
+const { validateId, validateIntegerId } = require("../../utils/validations");
 
 const updateMovie = async (req, res) => {
     const {id} = req.params;
@@ -38,4 +38,38 @@ const updateMovie = async (req, res) => {
     }
 }
 
-module.exports = updateMovie;
+const toggleMovie = async (req, res) => {
+    const {id} = req.params;
+    try {
+        validateIntegerId(id);
+
+        const [row] = await req.pool.query('SELECT is_active FROM movies WHERE id = ?', [id]);
+        if(row.length===0) {
+            throw Object.assign( new Error('Película no encotnrada'),
+            {
+                status: 404,
+                code: 'MOVIE_NOT_FOUND',
+                timestamp: new Date().toISOString()
+            })
+        }
+
+        const newStatus = row.isActive===1?0:1;
+
+        const [result] = await req.pool.query('UPDATE movies SET is_active = ? WHERE id = ?', [newStatus, id]);
+        if(result.affectedRows===0) {
+            throw Object.assign( new Error('Película no encontrada'),
+            {
+                status: 404,
+                code: 'MOVIE_NOT_FOUND',
+                timestamp: new Date().toISOString()
+            })
+        }
+
+        return res.status(200).json({message: 'Estado de la película cambiado satisfactoriamente'});
+    } catch(error) {
+        console.error("Error toggle movie:", error.code||error);
+        return res.status(error.status).json({error: error.message||error});
+    }
+}
+
+module.exports = {updateMovie, toggleMovie};

@@ -1,5 +1,5 @@
 const {Router} = require('express');
-const { getCinemaById, getAllCinemas } = require('../../handlers/cinemasHandlers/getCinemas');
+const { getCinemaById, getAllCinemas, getCinemasByQuery } = require('../../handlers/cinemasHandlers/getCinemas');
 const postCinema = require('../../handlers/cinemasHandlers/postCinema');
 const { updateCinema, toggleActiveCinema } = require('../../handlers/cinemasHandlers/updateCinema');
 const deleteCinema = require('../../handlers/cinemasHandlers/deleteCinema');
@@ -94,6 +94,45 @@ cinemasRouter.post('/', postCinema);
  */
 
 cinemasRouter.get('/', getAllCinemas);
+
+/**
+ * @swagger
+ * /cinemas/search:
+ *   get:
+ *     summary: Busca los cinemas que cumplan con los parametros de búsqueda enviados por query.
+ *     description: Utiliza los parámetros que le mandamos por query, los filtra y devuelve un array con todas las coincidencias en DDBB.
+ *     tags:
+ *       - Cinemas
+ *     parameters:
+ *      - in: query
+ *        name: name
+ *        schema:
+ *         type: string
+ *         example: Cinema de Prueba
+ *        description: Filtramos cinemas por nombre.
+ *      - in: query
+ *        name: city
+ *        schema:
+ *          type: string
+ *          example: CABA
+ *          description: Filtra por ciudad donde está el cinema.
+ *      - in: query
+ *        name: is_active
+ *        schema:
+ *          type: boolean
+ *          enum: [0, 1]
+ *          example: 1
+ *        description: Filtra por el estado del cinema.<br><br>`(1) Activo (0) Inactivo`
+ *     responses:
+ *       200:
+ *         description: Devuelve un array con todas las coincidencias en DDBB.
+ *       400:
+ *         description: Se envió un body vacío ó ningún filtro válido para búsqueda.
+ *       500:
+ *         description: Error interno del servidor.
+ */
+
+cinemasRouter.get('/search', getCinemasByQuery);
 
 /**
  * @swagger

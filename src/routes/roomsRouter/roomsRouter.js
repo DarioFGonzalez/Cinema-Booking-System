@@ -1,7 +1,7 @@
 const {Router} = require('express');
 const postRoom = require('../../handlers/roomsHandlers/postRoom');
 const { getAllRooms, getRoomById, getRoomsByQuery } = require('../../handlers/roomsHandlers/getRooms');
-const updateRoom = require('../../handlers/roomsHandlers/updateRoom');
+const {updateRoom, toggleRoom} = require('../../handlers/roomsHandlers/updateRoom');
 const deleteRoom = require('../../handlers/roomsHandlers/deleteRoom');
 const roomsRouter = Router();
 
@@ -185,10 +185,10 @@ roomsRouter.get('/:id', getRoomById);
  *           schema:
  *             type: object
  *             properties:
- *               is_active:
- *                 type: boolean
  *               capacity:
  *                 type: integer
+ *               cinema_id:
+ *                 type: string
  *           examples:
  *               cambiar_una_propiedad:
  *                 summary: ✔ Cambiar una única propiedad.
@@ -199,7 +199,7 @@ roomsRouter.get('/:id', getRoomById);
  *                 summary: ✔ Cambiar mas de una propiedad.
  *                 value:
  *                   capacity: 66
- *                   is_active: 0
+ *                   cinema_id: 11111111-1111-1111-1111-111111111111
  *               enviar_valores_validos_e_invalidos:
  *                 summary: ⚠ Ignora valores inválidos.
  *                 description: Los valores inválidos son ignorados, mientras enviemos algún valor válido por body- el servidor lo tomará y efectuará los cambios. <br>En el ejemplo enviamos un solo valor correcto (capacity) que será actualizado, mientras los demás serán ignorados.
@@ -230,6 +230,35 @@ roomsRouter.get('/:id', getRoomById);
  */
 
 roomsRouter.patch('/:id', updateRoom);
+
+/**
+ * @swagger
+ * /rooms/{id}/toggle:
+ *   patch:
+ *     summary: Cambia el estado (activo/inactivo) de una sala.
+ *     tags:
+ *       - Salas
+ *     description: Se fija el estado actual de la sala y lo settea en su opuesto (toggle).
+ *     parameters:
+ *       - in: path
+ *         name: id
+ *         required: true
+ *         schema:
+ *           type: string
+ *           example: 1
+ *         description: ID(integer) de la sala.
+ *     responses:
+ *       200:
+ *         description: Cambia el estado de la sala, devuelve un mensaje de éxito.
+ *       400:
+ *         description: No se pudo actualizar correctamente. (ID inválido o no recibido por parametro)
+ *       404:
+ *         description: No se encontró una sala con esa ID en la base de datos.
+ *       500:
+ *         description: Error interno del servidor.
+ */
+
+roomsRouter.patch('/:id/toggle', toggleRoom);
 
 /**
  * @swagger

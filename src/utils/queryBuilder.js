@@ -93,6 +93,8 @@ const getByQueryBuilder = (allowedFilters) => (queries) => {
     return { filters, values };
 }
 
+const searchCinemasQuery = getByQueryBuilder(['name', 'city', 'is_active']);
+const searchMoviesQuery = getByQueryBuilder(['title', 'duration', 'genre', 'release_date', 'is_active']);
 const searchRoomsQuery = getByQueryBuilder(['cinema_id', 'capacity', 'is_active']);
 const searchShowsQuery = getByQueryBuilder(['movie_id', 'room_id', 'show_time', 'price', 'is_active'])
 
@@ -129,10 +131,10 @@ const updateQueryBuilder = (allowedParams) => (queries) => {
     return { conditions, values };
 }
 
-const updateCinemaQuery = updateQueryBuilder([ 'name', 'city', 'is_active' ]);
+const updateCinemaQuery = updateQueryBuilder([ 'name', 'city' ]);
 const updateMoviesQuery = updateQueryBuilder([ 'title', 'duration', 'genre', 'release_date' ]);
-const updateRoomQuery = updateQueryBuilder([ 'capacity', 'is_active', 'cinema_id' ]);
-const updateShowQuery = updateQueryBuilder([ 'movie_id', 'room_id', 'price', 'is_active', 'show_time' ]);
+const updateRoomQuery = updateQueryBuilder([ 'capacity', 'cinema_id' ]);
+const updateShowQuery = updateQueryBuilder([ 'movie_id', 'room_id', 'price', 'show_time' ]);
 
 //Helpers
 const checkMandatoryColumns = (mandatoryColumns, queries) => {
@@ -151,5 +153,5 @@ const checkMandatoryColumns = (mandatoryColumns, queries) => {
 
 module.exports = {
     updateCinemaQuery, updateMoviesQuery, updateRoomQuery, updateShowQuery,
-    searchRoomsQuery, searchShowsQuery,
+    searchCinemasQuery, searchMoviesQuery, searchRoomsQuery, searchShowsQuery,
     postCinemaQuery, postMovieQuery, postRoomQuery, postShowQuery };

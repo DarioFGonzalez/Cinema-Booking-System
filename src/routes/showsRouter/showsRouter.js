@@ -1,7 +1,7 @@
 const {Router} = require('express');
 const postShow = require('../../handlers/showsHandlers/postShow');
 const { getAllShows, getShowsByQuery, getShowById } = require('../../handlers/showsHandlers/getShows');
-const updateShow = require('../../handlers/showsHandlers/updateShow');
+const {updateShow, toggleShow} = require('../../handlers/showsHandlers/updateShow');
 const deleteShow = require('../../handlers/showsHandlers/deleteShow');
 const showsRouter = Router();
 
@@ -235,9 +235,6 @@ showsRouter.get('/:id', getShowById);
  *                 type: number
  *                 format: double
  *                 description: Precio de la entrada para ver el show.
- *               is_active:
- *                 type: boolean
- *                 description: Estado del espectáculo. (1) Activo (0) Inactivo
  *           examples:
  *               cambiar_una_propiedad:
  *                 summary: ✔ Cambiar una única propiedad.
@@ -249,8 +246,8 @@ showsRouter.get('/:id', getShowById);
  *                 description: Podemos cambiar tantas propiedades `[válidas]` como necesitemos en la misma petición.
  *                 value:
  *                   price: 6900.99
- *                   is_active: 0
  *                   show_time: 2026-06-15 15:45:00
+ *                   movie_id: 1
  *               enviar_valores_validos_e_invalidos:
  *                 summary: ⚠ Ignora valores inválidos.
  *                 description: Los valores inválidos son ignorados, mientras enviemos algún valor válido por body- el servidor lo tomará y efectuará los cambios. <br>En el ejemplo enviamos un solo valor correcto (price) que será actualizado, mientras los demás serán ignorados.
@@ -282,6 +279,35 @@ showsRouter.get('/:id', getShowById);
  */
 
 showsRouter.patch('/:id', updateShow);
+
+/**
+ * @swagger
+ * /shows/{id}/toggle:
+ *   patch:
+ *     summary: Cambia el estado (activo/inactivo) de un show.
+ *     tags:
+ *       - Shows
+ *     description: Se fija el estado actual del show y lo settea en su opuesto (toggle).
+ *     parameters:
+ *       - in: path
+ *         name: id
+ *         required: true
+ *         schema:
+ *           type: string
+ *           example: 1
+ *         description: ID(integer) del show.
+ *     responses:
+ *       200:
+ *         description: Cambia el estado del show, devuelve un mensaje de éxito.
+ *       400:
+ *         description: No se pudo actualizar correctamente. (ID inválido o no recibido por parametro)
+ *       404:
+ *         description: No se encontró un show con esa ID en la base de datos.
+ *       500:
+ *         description: Error interno del servidor.
+ */
+
+showsRouter.patch('/:id/toggle', toggleShow);
 
 /**
  * @swagger

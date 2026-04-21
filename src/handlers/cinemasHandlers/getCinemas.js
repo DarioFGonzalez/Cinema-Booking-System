@@ -1,3 +1,4 @@
+const { searchCinemasQuery } = require("../../utils/queryBuilder");
 const { validateId } = require("../../utils/validations");
 
 const getAllCinemas = async (req, res) => {
@@ -12,6 +13,21 @@ const getAllCinemas = async (req, res) => {
     } catch(error) {
         console.error("Error trayendo todos los cinemas:", error.code||error);
         return res.status(error.status||500).json( {error: error.message||error});
+    }
+}
+
+const getCinemasByQuery = async (req, res) => {
+    try {
+        const {filters, values} = searchCinemasQuery(req.query);
+        
+        const searchQuery = `SELECT * FROM cinemas WHERE ${filters.join(' AND ')}`;
+
+        const [cinemas] = await req.pool.query(searchQuery, values);
+
+        return res.status(200).json(cinemas);
+    } catch(error) {
+        console.error("Error buscando cinemas por query:", error.code||error);
+        return res.status(error.status||500).json({error: error.message||error});
     }
 }
 
@@ -53,4 +69,4 @@ const getCinemaById = async (req, res) => {
     }
 }
 
-module.exports = { getAllCinemas, getCinemaById };
+module.exports = { getAllCinemas, getCinemasByQuery, getCinemaById };

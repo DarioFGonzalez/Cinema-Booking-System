@@ -51,17 +51,17 @@ const toggleActiveCinema = async (req, res) => {
 
         const [result] = await req.pool.query('UPDATE cinemas SET is_active = ? WHERE id = ?', [newStatus, id]);
         if(result.affectedRows===0) {
-            throw Object.assign(new Error('No se actualizó el estado del cinema'),
+            throw Object.assign(new Error('Cinema no encotnrado'),
             {
-                code: 400,
-                status: 'COULDNT_UPDATE_STATUS',
+                code: 404,
+                status: 'CINEMA_NOT_FOUND',
                 timestamp: new Date().toISOString()
             })
         }
 
         return res.status(200).json( {message: 'Estado del cinema cambiado satisfactoriamente'} );
     } catch(error) {
-        console.error("Error cambiando estado de cinema:", error.code||error);
+        console.error("Error toggle cinema:", error.code||error);
         return res.status(error.status||500).json( {error: error.message||error} );
     }
 } 
