@@ -1,5 +1,99 @@
 # Changelog
 
+## [Demo & Maintenance] - 2026-04-21
+
+### Added
+
+#### Health Check Endpoint
+- **GET /health** (`src/routes/mainRouter.js`)
+  - Simple endpoint to keep server alive
+  - Returns `{ message: 'main router working' }` with 200 status
+  - Designed for cron-job integration to prevent Render sleep/snooze mode
+  - Tagged as `🔧 Mantenimiento` in Swagger
+
+#### Database Reset Endpoint
+- **PATCH /demo/reset** (`src/handlers/demoHandlers/reset.js`)
+  - Truncates all tables (shows, rooms, movies, cinemas) in correct order
+  - Disables foreign key checks before truncation (avoids constraint errors)
+  - Re-initializes database with seed data via `initializeDatabase()`
+  - Returns success message with timestamp
+  - Tagged as `🔁 Reset` in Swagger (intentionally different from health tag for organization)
+
+#### Toggle Endpoints (Soft Delete Consistency)
+- **PATCH /rooms/{id}/toggle** (`src/handlers/roomsHandlers/updateRoom.js`)
+  - Flips `is_active` value for rooms (0 ↔ 1)
+  - Removed `is_active` from standard PATCH endpoint (cleaner separation)
+
+- **PATCH /shows/{id}/toggle** (`src/handlers/showsHandlers/updateShow.js`)
+  - Flips `is_active` value for shows
+  - Removed `is_active` from standard PATCH endpoint
+
+### Infrastructure Updates
+
+#### Database Schema
+- Added `updated_at` column to `rooms` table (auto-updates on change)
+- Added `updated_at` column to `shows` table (auto-updates on change)
+- All tables now have complete audit trail (`created_at` + `updated_at`)
+
+#### Query Builders
+- Removed `is_active` from `updateRoomQuery` (now only toggle handles status)
+- Removed `is_active` from `updateShowQuery` (now only toggle handles status)
+
+#### Seed Data
+- Added fixed shows seed data (3 shows with IDs 1, 2, 3)
+- Uses `ON DUPLICATE KEY UPDATE` for idempotent seeding
+- Fixed datetime format in movies seed (added missing comma before `fixedDateTime`)
+
+### Swagger Documentation (all modules updated)
+
+#### Demo Section
+- `GET /health` documented with maintenance tag
+- `PATCH /demo/reset` documented with reset tag and success/error responses
+
+#### Cinemas Module
+- Added `GET /cinemas/search` with query parameters (name, city, is_active)
+- Added toggle endpoint documentation
+- Improved examples with emojis (✔, ✖, ⚠)
+
+#### Movies Module
+- Added `GET /movies/search` with query parameters
+- Added toggle endpoint documentation
+- Consistent example formatting
+
+#### Rooms Module
+- Added `GET /rooms/search` with query parameters (cinema_id, capacity, is_active)
+- Added toggle endpoint documentation
+- Removed `is_active` from PATCH examples
+
+#### Shows Module
+- Complete CRUD documentation with nested objects example
+- Search endpoint with query parameters
+- Toggle endpoint documentation
+- Examples for success, missing fields, invalid IDs, extra data
+
+### Technical Decisions
+- Reset endpoint truncates tables in reverse dependency order (shows → rooms → movies → cinemas)
+- `SET FOREIGN_KEY_CHECKS = 0/1` prevents constraint errors during reset
+- Health endpoint separated from demo endpoints (different tags for Swagger organization)
+- Toggle endpoints use same validation as other endpoints (`validateIntegerId`)
+
+### Error Handling
+- Reset endpoint: 500 on any database error during truncation or reseeding
+- Health endpoint: always 200 (no error cases)
+- Toggle endpoints: same error codes as standard endpoints (400, 404, 500)
+
+### Notes
+- `GET /health` is intentionally simple (no database query, no heavy logic)
+- Reset endpoint is destructive by design (clears all user-generated data)
+- Toggle endpoints now the **only** way to change `is_active` status
+- All Swagger examples use realistic data (IDs, dates, prices)
+
+### Next Steps
+- [ ] Pagination for all list endpoints (`/cinemas`, `/movies`, `/rooms`, `/shows`)
+- [ ] JWT authentication for admin routes (optional, not in scope)
+- [ ] Unit tests for reset and toggle endpoints
+- [ ] Deploy to Render with cron-job for health endpoint
+
 ## [Shows Module] - 2026-04-21
 
 ### Schema

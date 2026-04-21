@@ -25,8 +25,8 @@ Una API REST para gestión de cines, películas, salas y funciones.
 **El foco NO es la complejidad del negocio, sino la calidad de la documentación.**
 
 ### Lo que SÍ tiene (y está documentado):
-- ✅ CRUD completo de cinemas, movies y rooms
-- ✅ Relaciones entre entidades (cinemas → rooms, próximamente rooms → shows)
+- ✅ CRUD completo de cinemas, movies, rooms y shows
+- ✅ Relaciones entre entidades (cinemas → rooms, rooms → shows, movies → shows)
 - ✅ Validación de integridad referencial (FK checks antes de insertar)
 - ✅ Documentación interactiva con Swagger UI
 - ✅ Ejemplos de éxito, error y casos mixtos por endpoint
@@ -36,7 +36,7 @@ Una API REST para gestión de cines, películas, salas y funciones.
 ### Lo que está en camino (y también se documentará):
 - 🔄 Paginación en listados
 - 🔄 Tests unitarios y de integración
-- 🔄 Soft delete consistente (toggle en todas las tablas)
+- 🔄 Despliegue en Render con cron-job (evitar siesta)
 
 ### Lo que NO tiene (ni va a tener):
 - ❌ JWT / autenticación (no es el objetivo)
@@ -63,46 +63,11 @@ El código es funcional y limpio, pero el verdadero valor está en la documentac
 ### Project Structure
 ```
 src/
-├── config/
-│   ├── db.js              # MySQL connection pool with mysql2/promise
-│   ├── server.js          # Express app, middleware, Swagger mount
-│   ├── swagger.js         # OpenAPI 3.0 config (swagger-jsdoc)
-│   └── init-db.js         # Schema creation + seed data (UPSERT, fixed IDs)
-├── handlers/
-│   ├── cinemasHandlers/
-│   │   ├── getCinemas.js      # GET all, GET by id, GET by id with rooms
-│   │   ├── postCinema.js      # POST create (UUID auto-generated)
-│   │   ├── updateCinema.js    # PATCH update, PATCH toggle active
-│   │   └── deleteCinema.js    # DELETE hard delete
-│   ├── moviesHandlers/
-│   │   ├── getMovies.js       # GET all, GET by id
-│   │   ├── postMovie.js       # POST create (mandatory: title, duration, genre)
-│   │   ├── updateMovie.js     # PATCH update (partial)
-│   │   └── deleteMovie.js     # DELETE hard delete
-│   ├── roomsHandlers/
-│   │   ├── getRooms.js        # GET all, GET by id (with show counters), GET by search
-│   │   ├── postRoom.js        # POST create (validates cinema_id exists)
-│   │   ├── updateRoom.js      # PATCH update
-│   │   └── deleteRoom.js      # DELETE hard delete
-│   └── showsHandlers/
-│       ├── getShows.js        # GET all, GET by id (with movie/room nested), GET by search
-│       ├── postShow.js        # POST create (validates movie_id and room_id exist)
-│       ├── updateShow.js      # PATCH update
-│       └── deleteShow.js      # DELETE hard delete
-├── routes/
-│   ├── cinemasRouter/
-│   │   └── cinemasRouter.js    # Swagger docs + route definitions
-│   ├── moviesRouter/
-│   │   └── moviesRouter.js     # Swagger docs + route definitions
-│   ├── roomsRouter/
-│   │   └── roomsRouter.js      # Swagger docs + route definitions
-│   ├── showsRouter/
-│   │   └── showsRouter.js      # Swagger docs + route definitions
-│   └── mainRouter.js           # Swagger docs + route definitions
-├── utils/
-│   ├── queryBuilder.js    # postQueryBuilder, updateQueryBuilder, checkMandatoryColumns
-│   └── validations.js     # validateId (UUID), validateIntegerId (INT)
-└── server.js              # Entry point (starts server, connects DB, runs init-db)
+├── config/ # DB, server, Swagger, init
+├── handlers/ # Lógica de negocio (cinemas, movies, rooms, shows, demo)
+├── routes/ # Definición de endpoints
+├── utils/ # Query builders, validaciones
+└── server.js # Entry point
 ```
 
 
@@ -153,8 +118,9 @@ src/
 |--------|----------|-------------|
 | `POST` | `/cinemas` | Crear cine (UUID automático) |
 | `GET` | `/cinemas` | Listar todos |
+| `GET` | `/cinemas/search?name=&city=&is_active=` | Buscar por filtros dinámicos |
 | `GET` | `/cinemas/:id` | Obtener cine + sus salas |
-| `PATCH` | `/cinemas/:id` | Actualizar nombre/ciudad/estado |
+| `PATCH` | `/cinemas/:id` | Actualizar nombre/ciudad |
 | `PATCH` | `/cinemas/:id/toggle` | Activar/desactivar (soft delete) |
 | `DELETE` | `/cinemas/:id` | Eliminar físicamente |
 
@@ -164,8 +130,10 @@ src/
 |--------|----------|-------------|
 | `POST` | `/movies` | Crear película (title, duration, genre requeridos) |
 | `GET` | `/movies` | Listar todas |
+| `GET` | `/movies/search?title=&genre=&is_active=` | Buscar por filtros dinámicos |
 | `GET` | `/movies/:id` | Obtener por ID |
 | `PATCH` | `/movies/:id` | Actualizar datos |
+| `PATCH` | `/movies/:id/toggle` | Activar/desactivar (soft delete) |
 | `DELETE` | `/movies/:id` | Eliminar físicamente |
 
 ### 🪑 Salas
@@ -174,9 +142,10 @@ src/
 |--------|----------|-------------|
 | `POST` | `/rooms` | Crear sala (cinema_id, capacity requeridos) |
 | `GET` | `/rooms` | Listar todas |
-| `GET` | `/rooms/:id` | Obtener sala + contadores de shows + shows activos |
 | `GET` | `/rooms/search?cinema_id=&capacity=&is_active=` | Buscar por filtros dinámicos |
-| `PATCH` | `/rooms/:id` | Actualizar capacidad o estado |
+| `GET` | `/rooms/:id` | Obtener sala + contadores de shows + shows activos |
+| `PATCH` | `/rooms/:id` | Actualizar capacidad |
+| `PATCH` | `/rooms/:id/toggle` | Activar/desactivar (soft delete) |
 | `DELETE` | `/rooms/:id` | Eliminar físicamente |
 
 ### 🎟️ Shows
@@ -187,8 +156,16 @@ src/
 | `GET` | `/shows` | Listar todas las funciones |
 | `GET` | `/shows/search?movie_id=&room_id=&show_time=&price=` | Buscar por filtros dinámicos |
 | `GET` | `/shows/:id` | Obtener función por ID (incluye película y sala como objetos anidados) |
-| `PATCH` | `/shows/:id` | Actualizar función |
+| `PATCH` | `/shows/:id` | Actualizar función (movie_id, room_id, show_time, price) |
+| `PATCH` | `/shows/:id/toggle` | Activar/desactivar (soft delete) |
 | `DELETE` | `/shows/:id` | Eliminar físicamente |
+
+### 🔧 Utilidades
+
+| Método | Endpoint | Descripción |
+|--------|----------|-------------|
+| `GET` | `/health` | Health check para mantener el servidor activo (cron-job) |
+| `PATCH` | `/demo/reset` | Resetea toda la base de datos a su estado inicial (sandbox) |
 
 ---
 
@@ -223,9 +200,8 @@ El servidor arrancará en `http://localhost:5000`
 ## 🔄 Próximos pasos (en este proyecto)
 
 - [ ] Paginación en listados
-- [ ] Relaciones con ON DELETE CASCADE / RESTRICT (ya implementadas, documentar)
-- [ ] Soft delete consistente
 - [ ] Tests unitarios y de integración
+- [ ] Despliegue en Render con cron-job
 
 ## 📊 Progreso actual
 
