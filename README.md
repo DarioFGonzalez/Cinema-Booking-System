@@ -32,11 +32,7 @@ Una API REST para gestión de cines, películas, salas y funciones.
 - ✅ Ejemplos de éxito, error y casos mixtos por endpoint
 - ✅ Query builders reutilizables con currying
 - ✅ Código limpio y separado por capas
-
-### Lo que está en camino (y también se documentará):
-- 🔄 Paginación en listados
-- 🔄 Tests unitarios y de integración
-- 🔄 Despliegue en Render con cron-job (evitar siesta)
+- ✅ Despliegue en producción con Render + cron-job para evitar inactividad
 
 ### Lo que NO tiene (ni va a tener):
 - ❌ JWT / autenticación (no es el objetivo)
@@ -171,10 +167,12 @@ src/
 
 ## 📖 Documentación interactiva
 
-Una vez que el servidor esté corriendo:
-```
-http://localhost:5000/api-docs
-```
+La API está desplegada y puedes probarla en vivo:
+
+👉 **Swagger UI (Producción):** [https://cinema-booking-system-fh3m.onrender.com/api-docs](https://cinema-booking-system-fh3m.onrender.com/api-docs)
+
+Para ejecutarla localmente, una vez que el servidor esté corriendo, abre:
+`http://localhost:5000/api-docs`
 
 **Swagger UI incluye:**
 - Ejemplos de requests exitosos

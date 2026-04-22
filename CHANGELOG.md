@@ -1,5 +1,67 @@
 # Changelog
 
+## [Deployment & Infrastructure] - 2026-04-22
+
+### Added
+
+#### Production Environment (Render)
+- **Web Service deployed**: `https://cinema-booking-system-fh3m.onrender.com`
+- **Environment variables configured** for production:
+  - `NODE_ENV=production`
+  - `DB_HOST_PROD`, `DB_USER_PROD`, `DB_PASSWORD_PROD`, `DB_NAME_PROD`, `DB_PORT_PROD` for Aiven MySQL
+  - `PORT=5000` for Express server
+- **Conditional database configuration** in `db.js`:
+  - Uses `DB_HOST_PROD` presence to detect production environment (no hard dependency on `NODE_ENV`)
+  - Enables SSL with `{ rejectUnauthorized: false }` for Aiven MySQL
+  - Falls back to local configuration when `DB_HOST_PROD` is not present
+
+#### Database Hosting (Aiven)
+- **MySQL instance** provisioned at `mysql-3759141c-cinema-api-db.h.aivencloud.com:16787`
+- Database name: `cinema_db`
+- SSL required for all connections
+- Connection tested and verified working with production API
+
+#### Documentation & Monitoring
+- **Swagger UI available at**: `https://cinema-booking-system-fh3m.onrender.com/api-docs`
+- **Health check endpoint**: `GET /health` returns `200 OK` with `{ message: 'main router working' }`
+- **Cron-job.org configured** to ping `/health` every 5 minutes to prevent Render free tier sleep/snooze mode
+
+#### Swagger Server Configuration
+- Production server URL added as first option in `swagger.js` servers list:
+  - `https://cinema-booking-system-fh3m.onrender.com` (selected by default)
+  - `http://localhost:5000` (local development fallback)
+- Ensures that API examples in Swagger UI point to live production endpoints by default
+
+### Technical Decisions
+- **No `NODE_ENV` dependency**: Database configuration uses `if (process.env.DB_HOST_PROD)` instead of `NODE_ENV === 'production'` for greater reliability
+- **Separate environment variables**: Local (`_LOCAL` suffix) and production (`_PROD` suffix) variables coexist in `.env` without interfering
+- **SSL enabled** for production database connections (required by Aiven)
+- **Health endpoint intentionally simple**: No database queries, no heavy logic — only returns `200 OK` to minimize resource usage
+
+### Deployment Notes
+- Render build command: `npm install`
+- Render start command: `npm start`
+- Free tier spins down after 15 minutes of inactivity
+- Cron-job prevents spin-down by hitting `/health` every 5 minutes
+- Database connection uses `dateStrings: true` to prevent `mysql2` from converting DATETIME to UTC
+
+### Error Resolution
+- **`ECONNREFUSED` on initial deploy**: Caused by missing `_PROD` environment variables in Render
+- **Fix**: Added all `_PROD` variables to Render environment configuration
+- **Verification**: Confirmed working via Swagger UI and direct endpoint access
+
+### Next Steps
+- [ ] Configure custom domain (optional)
+- [ ] Add rate limiting for production endpoints
+- [ ] Implement pagination for list endpoints
+- [ ] Add automated tests before production deployment
+
+### Notes
+- Production database (Aiven) and local database (localhost) are completely separate
+- Demo reset endpoint (`PATCH /demo/reset`) works in production and clears all data while preserving seed data
+- All 27 documented endpoints tested and verified working in production environment
+- Swagger UI examples now point to production server by default (no localhost confusion for recruiters/tech leads)
+
 ## [Demo & Maintenance] - 2026-04-21
 
 ### Added
