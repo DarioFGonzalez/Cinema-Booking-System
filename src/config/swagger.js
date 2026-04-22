@@ -14,6 +14,10 @@ const options = {
         },
         servers: [
             {
+                url: 'https://cinema-booking-system-fh3m.onrender.com',
+                description: 'DEPLOY'
+            },
+            {
                 url: 'http://localhost:5000',
                 description: 'Servidor local'
             }
