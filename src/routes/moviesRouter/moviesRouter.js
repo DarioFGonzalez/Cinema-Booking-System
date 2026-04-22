@@ -41,7 +41,7 @@ const moviesRouter = Router();
  *                 value:
  *                   title: Pulp Fiction
  *                   genre: Comedia negra
- *                   duration: 
+ *                   duration: 154
  *               enviamos_datos_opcionales:
  *                 summary: ✔ Enviamos datos opcionales también.
  *                 description: Podemos enviar los datos opcionales también. En este caso, la fecha de lanzamiento. Sino, quedaría en NULL.
@@ -52,7 +52,7 @@ const moviesRouter = Router();
  *                   release_date: 1988-07-12
  *               enviar_datos_extra:
  *                 summary: ⚠ Todo dato extra será ignorado.
- *                 description: No es la mejor práctica, pero en caso de recibir datos extra estos serán ignorados y se creará el registro con los datos mandatorios.
+ *                 description: No es la mejor práctica, pero en caso de recibir datos extra estos serán ignorados y se creará el registro con los datos clave.
  *                 value:
  *                   title: Titanic
  *                   genre: Drama
@@ -63,7 +63,7 @@ const moviesRouter = Router();
  *                   budget: 200000000
  *               faltan_datos_necesarios:
  *                 summary: ✖ No enviar todos los datos necesarios.
- *                 description: Si falta algún dato crítico, recibiremos como respuesta un error.
+ *                 description: Si falta algún dato crítico, recibiremos como respuesta un error.<br><br>`ERROR(400) "Faltan campos obligatorios {datos faltantes}"`
  *                 value:
  *                   title: Jurassic Park
  *                   genre: Aventura
@@ -78,17 +78,21 @@ const moviesRouter = Router();
  *             schema:
  *               type: object
  *               properties:
- *                 error:
- *                   type: string
+ *                 status:
+ *                   type: integer
+ *                   example: 400
  *                 code:
  *                   type: string
+ *                   example: MISSING_REQUIRED_FIELDS
  *                 missingFields:
  *                   type: array
  *                   items:
  *                     type: string
- *                   timestamp:
- *                     type: string
- *                     format: date-time
+ *                     example: ['name', 'city']
+ *                 timestamp:
+ *                   type: string
+ *                   format: date-time
+ *                   example: "2026-04-22T14:30:00Z"
  *       500:
  *         description: Error interno del servidor
  */
@@ -169,7 +173,7 @@ moviesRouter.get('/search', getMoviesByQuery);
  * /movies/{id}:
  *   get:
  *     summary: Busca una pelicula por ID.
- *     description: Busca específicamente por ID y devuelve todos sus datos junto a los shows a los que esté relacionada.
+ *     description: Busca específicamente por ID y devuelve todos sus datos junto a los shows activos a los que esté relacionada.
  *     tags:
  *       - Peliculas
  *     parameters:
@@ -247,13 +251,13 @@ moviesRouter.get('/:id', getMovieById);
  *                   country: Argentina
  *               enviar_valores_inválidos:
  *                 summary: ✖ Enviar solo valores inválidos.
- *                 description: Enviar solo valores que no son válidos para actualización devolverá un error 400 ("Sin condiciones para actualizar") como respuesta
+ *                 description: Enviar solo valores que no son válidos para actualización devolverá un mensaje error.<br><br>`ERROR(400) "Sin condiciones para actualizar"`
  *                 value:
  *                   budget: 200000000
  *                   titulo: Dune 5 Duned
  *               enviar_body_vacío:
  *                 summary: ✖ Enviar body vacío.
- *                 description: Al enviar un body vacío, el helper que construye la query de actualización lo detecta y responde con un error 400 ("No se recibió nada por body").
+ *                 description: Al enviar un body vacío, el helper que construye la query de actualización lo detecta y responde con un mensaje de error.<br><br>`ERROR(400) "No se recibió nada por body"`
  *                 value: {}
  *     responses:
  *       200:

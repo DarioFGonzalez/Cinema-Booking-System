@@ -73,7 +73,7 @@ const showsRouter = Router();
  *                   special_guests: 15
  *               falta_dato_obligatorio:
  *                 summary: ✖ No enviamos todos los datos necesarios.
- *                 description: En caso de no recibir datos clave, recibiremos un error detallando los campos faltantes.<br><br>`ERROR(400) "Faltan campos obligatorios= {datos faltantes}""`
+ *                 description: En caso de no recibir datos clave, recibiremos un error detallando los campos faltantes.<br><br>`ERROR(400) "Faltan campos obligatorios {datos faltantes}""`
  *                 value:
  *                   movie_id: 1
  *                   room_id: 1
@@ -150,14 +150,14 @@ showsRouter.get('/', getAllShows);
  *        schema:
  *          type: string
  *          format: date-time
- *          example: 2026-06-14T15:00:00Z
+ *          example: 2026-04-21 18:00:00
  *          description: Filtra por fecha en que se lleva a cabo la función.
  *      - in: query
  *        name: price
  *        schema:
  *          type: number
  *          format: double
- *          example: 4500.00
+ *          example: 7500.00
  *        description: Filtra por precio del show.
  *     responses:
  *       200:

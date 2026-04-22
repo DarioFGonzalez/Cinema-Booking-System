@@ -64,7 +64,7 @@ const cinemasRouter = Router();
  *                   zipcode: b1616
  *               no_enviar_dato_obligatorio:
  *                 summary: ✖ No enviar todos los datos necesarios.
- *                 description: En caso de no recibir datos clave, recibiremos un error detallando los campos faltantes.<br>(400) `Faltan campos obligatorios> {datos faltantes}`
+ *                 description: En caso de no recibir datos clave, recibiremos un error detallando los campos faltantes.<br><br>`ERROR(400) "Faltan campos obligatorios {datos faltantes}"`
  *                 value:
  *                   name: Solo el nombre
  *     responses:
@@ -119,7 +119,7 @@ cinemasRouter.get('/', getAllCinemas);
  *      - in: query
  *        name: is_active
  *        schema:
- *          type: boolean
+ *          type: integer
  *          enum: [0, 1]
  *          example: 1
  *        description: Filtra por el estado del cinema.<br><br>`(1) Activo (0) Inactivo`
@@ -190,7 +190,6 @@ cinemasRouter.get('/:id', getCinemaById)
  *               city:
  *                 type: string
  *           examples:
- *               # ========== EJEMPLOS EXITOSOS ==========
  *               cambiar_solo_nombre:
  *                 summary: ✔ Cambiamos solo el nombre de un cinema.
  *                 value:
@@ -205,23 +204,22 @@ cinemasRouter.get('/:id', getCinemaById)
  *                   name: Cine independiente Floresta
  *                   city: Floresta
  *               enviar_valores_validos_e_invalidos:
- *                 summary: ⚠ Ignora valores inválidos mientras tenga por lo menos uno válido.
- *                 description: Los valores inválidos son ignorados, mientras enviemos UN valor válido por body- el servidor lo tomará y efectuará los cambios.
+ *                 summary: ⚠ Todo dato inválido será ignorado.
+ *                 description: Los valores inválidos son ignorados, mientras exista un valor válido el servidor actualizará el registro.
  *                 value:
  *                   name: Cine Nueva Philadelphia
  *                   telephone: 4746-4826
  *                   owner: Dario Gonzalez
  *                   country: Argentina
- *               # ========== EJEMPLOS DE ERROR ==========
  *               enviar_valores_inválidos:
  *                 summary: ✖ Enviar valores inválidos.
- *                 description: Enviar solo valores que no son válidos para actualización devolverá un error 400 ("Sin condiciones para actualizar") como respuesta
+ *                 description: Enviar solo valores que no son válidos para actualización devolverá un mensaje de error.<br><br>`ERROR(400) "Sin condiciones para actualizar"`
  *                 value:
  *                   address: Varela 1955
  *                   zipcode: f1417
  *               enviar_body_vacío:
  *                 summary: ✖ Enviar body vacío.
- *                 description: Al enviar un body vacío, el helper que construye la query de actualización lo detecta y responde con un error 400 ("No se recibió nada por body").
+ *                 description: Al enviar un body vacío, el helper que construye la query de actualización lo detecta y responde con un mansaje de error.<br><br>`ERROR(400) "No se recibió nada por body"`
  *                 value: {}
  *     responses:
  *       200:

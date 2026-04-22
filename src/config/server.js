@@ -7,6 +7,10 @@ const cors = require('cors');
 const pool = require('./db');
 const mainRouter = require('../routes/mainRouter');
 
+console.log('🔍 DEBUG - NODE_ENV:', process.env.NODE_ENV);
+console.log('🔍 DEBUG - DB_HOST_PROD existe?', !!process.env.DB_HOST_PROD);
+console.log('🔍 DEBUG - DB_HOST_PROD valor:', process.env.DB_HOST_PROD);
+
 server.use(cors())
 server.use(express.json());
 

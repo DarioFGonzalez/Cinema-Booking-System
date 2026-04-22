@@ -34,7 +34,7 @@ const getMovieById = async (req, res) => {
 
         const queryById = `SELECT * FROM movies WHERE id = ?`;
 
-        const [result] = await req.pool.query(queryBiId, [id]);
+        const [result] = await req.pool.query(queryById, [id]);
         if(result.length===0) {
             throw Object.assign( new Error('Pelicula no encontrada'),
             {
